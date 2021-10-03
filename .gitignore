@@ -34,3 +34,4 @@ Sources/.DS_Store
 Sources/Stylophone.iOS/bin
 Sources/Stylophone.iOS/obj
 .DS_Store
+/Sources/MpcNET.1.0.0.nupkg
