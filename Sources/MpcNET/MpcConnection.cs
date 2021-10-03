@@ -13,11 +13,11 @@ namespace MpcNET
     using System.Net;
     using System.Net.Sockets;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
-    using MpcNET.Commands;
     using MpcNET.Exceptions;
     using MpcNET.Message;
-    using Sundew.Base.ControlFlow;
+    using Polly;
 
     /// <summary>
     /// Keeps the connection to the MPD server and handels the most basic structure of the MPD protocol.
@@ -25,8 +25,7 @@ namespace MpcNET
     /// </summary>
     public class MpcConnection : IMpcConnection
     {
-        private static readonly Encoding Encoding = new UTF8Encoding();
-        private readonly IMpcConnectionReporter mpcConnectionReporter;
+        private readonly Encoding Encoding = new UTF8Encoding();
         private readonly IPEndPoint server;
 
         private TcpClient tcpClient;
@@ -36,11 +35,9 @@ namespace MpcNET
         /// Initializes a new instance of the <see cref="MpcConnection" /> class.
         /// </summary>
         /// <param name="server">The server.</param>
-        /// <param name="mpcConnectionReporter">The MPC connection logger.</param>
-        public MpcConnection(IPEndPoint server, IMpcConnectionReporter mpcConnectionReporter = null)
+        public MpcConnection(IPEndPoint server)
         {
-            this.mpcConnectionReporter = mpcConnectionReporter;
-            this.ClearConnectionFields();
+            ClearConnectionFields();
             this.server = server ?? throw new ArgumentNullException("Server IPEndPoint not set.", nameof(server));
         }
 
@@ -50,21 +47,31 @@ namespace MpcNET
         public string Version { get; private set; }
 
         /// <summary>
+        /// Is this connection active?
+        /// </summary>
+        public bool IsConnected => tcpClient?.Connected ?? false;
+
+        /// <summary>
+        /// Event emitted when the connection is cut.
+        /// </summary>
+        public event EventHandler<EventArgs> Disconnected;
+
+        /// <summary>
         /// Connects asynchronously.
         /// </summary>
         /// <returns>The connect task.</returns>
-        public async Task ConnectAsync()
+        public async Task ConnectAsync(CancellationToken token = default)
         {
-            if (this.tcpClient != null)
+            if (tcpClient != null)
             {
-                var pingResult = await this.PingAsync();
+                var pingResult = await PingAsync();
                 if (pingResult)
                 {
                     return;
                 }
             }
 
-            await this.ReconnectAsync(false);
+            await ReconnectAsync(false, token);
         }
 
         /// <summary>
@@ -73,7 +80,8 @@ namespace MpcNET
         /// <returns>The disconnect task.</returns>
         public Task DisconnectAsync()
         {
-            return this.DisconnectAsync(true);
+            Disconnect(true);
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -86,9 +94,9 @@ namespace MpcNET
         /// </returns>
         public async Task<IMpdMessage<TResponse>> SendAsync<TResponse>(IMpcCommand<TResponse> mpcCommand)
         {
-            if (this.tcpClient == null)
+            if (tcpClient == null)
             {
-                await this.ReconnectAsync(true);
+                await ReconnectAsync(true).ConfigureAwait(false);
             }
 
             if (mpcCommand == null)
@@ -96,74 +104,74 @@ namespace MpcNET
                 throw new CommandNullException();
             }
 
-            Exception lastException = null;
             IReadOnlyList<string> response = new List<string>();
-            var sendAttempter = new Attempter(3);
+            byte[] rawResponse = null;
+
             var commandText = mpcCommand.Serialize();
-            this.mpcConnectionReporter?.Sending(commandText);
-            while (sendAttempter.Attempt())
+
+            Exception finalException = null;
+
+            // Send the command, retrying three times in case of an exception
+            for (var i=0; i < 3; i++)
             {
                 try
                 {
-                    using (var writer = new StreamWriter(this.networkStream, Encoding, 512, true) { NewLine = "\n" })
+                    using (var writer = new StreamWriter(networkStream, Encoding, 512, true) { NewLine = "\n" })
                     {
                         await writer.WriteLineAsync(commandText);
                         await writer.FlushAsync();
                     }
 
-                    response = await this.ReadResponseAsync(commandText);
+                    (rawResponse, response) = ReadResponse(commandText);
                     if (response.Any())
                     {
-                        lastException = null;
+                        finalException = null;
                         break;
                     }
 
                     throw new EmptyResponseException(commandText);
-                }
-                catch (Exception exception)
+                } catch (Exception e)
                 {
-                    lastException = exception;
-                    this.mpcConnectionReporter?.SendException(commandText, sendAttempter.CurrentAttempt, exception);
-                    await this.ReconnectAsync(true);
-                    this.mpcConnectionReporter?.RetrySend(commandText, sendAttempter.CurrentAttempt);
+                    finalException = e;
+                    await ReconnectAsync(true).ConfigureAwait(false);
                 }
             }
 
-            if (lastException != null)
+            if (finalException != null)
             {
                 try
                 {
-                    await this.DisconnectAsync(false);
+                    Disconnect(false);
                 }
-                catch (Exception)
+                catch
                 {
                 }
 
-                return new ErrorMpdMessage<TResponse>(mpcCommand, new ErrorMpdResponse<TResponse>(lastException));
+                return new ErrorMpdMessage<TResponse>(mpcCommand, new ErrorMpdResponse<TResponse>(finalException));
             }
 
-            return new MpdMessage<TResponse>(mpcCommand, true, response);
+            return new MpdMessage<TResponse>(mpcCommand, true, response, rawResponse);
         }
 
         /// <summary>
         /// Releases unmanaged and - optionally - managed resources.
         /// </summary>
-        void IDisposable.Dispose()
+        public void Dispose()
         {
-            this.DisconnectAsync().Wait();
+            Disconnect(true);
         }
 
         private async Task<bool> PingAsync()
         {
             try
             {
-                using (var writer = new StreamWriter(this.networkStream, Encoding, 512, true) { NewLine = "\n" })
+                using (var writer = new StreamWriter(networkStream, Encoding, 512, true) { NewLine = "\n" })
                 {
                     await writer.WriteLineAsync("ping");
                     await writer.FlushAsync();
                 }
 
-                using (var reader = new StreamReader(this.networkStream, Encoding, true, 512, true))
+                using (var reader = new StreamReader(networkStream, Encoding, true, 512, true))
                 {
                     var responseLine = await reader.ReadLineAsync();
                     return responseLine == "OK";
@@ -175,81 +183,133 @@ namespace MpcNET
             }
         }
 
-        private async Task ReconnectAsync(bool isReconnect)
+        private async Task ReconnectAsync(bool isReconnect, CancellationToken token = default)
         {
-            var connectAttempter = new Attempter(3);
-            while (connectAttempter.Attempt())
-            {
-                this.mpcConnectionReporter?.Connecting(isReconnect, connectAttempter.CurrentAttempt);
-                await this.DisconnectAsync(false);
-
-                this.tcpClient = new TcpClient();
-                await this.tcpClient.ConnectAsync(this.server.Address, this.server.Port);
-                if (this.tcpClient.Connected)
+            var connectResult = await Policy
+                .Handle<Exception>()
+                .RetryAsync(isReconnect ? 0 : 3)
+                .ExecuteAndCaptureAsync(async (t) =>
                 {
-                    this.mpcConnectionReporter?.ConnectionAccepted(isReconnect, connectAttempter.CurrentAttempt);
-                    break;
+                    var client = new TcpClient();
+                    using (t.Register(() => client.Close()))
+                    {
+                        try
+                        {
+                            await client.ConnectAsync(server.Address, server.Port).ConfigureAwait(false);
+                        }
+                        catch (ObjectDisposedException) when (t.IsCancellationRequested)
+                        {
+                            t.ThrowIfCancellationRequested();
+                        }
+                    }
+
+                    if (client.Connected)
+                    {
+                        return client;
+                    }
+
+                    return null;
+                }, token, true).ConfigureAwait(false);
+
+            if (connectResult.Outcome == OutcomeType.Successful && connectResult.Result != null)
+            {
+                Disconnect(false);
+                tcpClient = connectResult.Result;
+
+                networkStream = tcpClient.GetStream();
+                using (var reader = new StreamReader(networkStream, Encoding, true, 512, true))
+                {
+                    var firstLine = await reader.ReadLineAsync();
+                    if (firstLine != null && !firstLine.StartsWith(Constants.FirstLinePrefix))
+                    {
+                        await DisconnectAsync();
+                        throw new MpcConnectException("Response of mpd does not start with \"" + Constants.FirstLinePrefix + "\".");
+                    }
+
+                    Version = firstLine?.Substring(Constants.FirstLinePrefix.Length);
                 }
             }
-
-            this.networkStream = this.tcpClient.GetStream();
-            using (var reader = new StreamReader(this.networkStream, Encoding, true, 512, true))
+            else
             {
-                var firstLine = await reader.ReadLineAsync();
-                if (!firstLine.StartsWith(Constants.FirstLinePrefix))
-                {
-                    await this.DisconnectAsync(false);
-                    throw new MpcConnectException("Response of mpd does not start with \"" + Constants.FirstLinePrefix + "\".");
-                }
-
-                this.Version = firstLine.Substring(Constants.FirstLinePrefix.Length);
-                this.mpcConnectionReporter?.Connected(isReconnect, connectAttempter.CurrentAttempt, firstLine);
+                // We couldn't reconnect
+                Disconnected?.Invoke(this, new EventArgs());
+                throw new MpcConnectException(connectResult.FinalException?.Message);
             }
         }
 
-        private async Task<IReadOnlyList<string>> ReadResponseAsync(string commandText)
+        private Tuple<byte[], IReadOnlyList<string>> ReadResponse(string commandText)
         {
             var response = new List<string>();
-            using (var reader = new StreamReader(this.networkStream, Encoding, true, 512, true))
+            byte[] binaryResponse = null;
+
+            var reader = new MpdResponseReader(networkStream, Encoding);
+            MpdResponseReader.NextData nextData;
+
+            string responseLine;
+            while ((nextData = reader.ReportNextData()) != MpdResponseReader.NextData.Eof)
             {
-                string responseLine;
-                do
+                // If the incoming data is binary, read it raw
+                if (nextData == MpdResponseReader.NextData.BinaryData)
                 {
-                    responseLine = await reader.ReadLineAsync();
-                    this.mpcConnectionReporter?.ReadResponse(responseLine, commandText);
+                    // The reader already knows the length of the binary data, so we just tell it to read.
+                    // MPD binary responses usually don't go past 8192 bytes.
+                    byte[] buf = new byte[8192];
+
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        do
+                        {
+                            var bytesRead = reader.ReadBinaryData(buf, 0, buf.Length);
+                            ms.Write(buf, 0, bytesRead);
+                        } while (reader.ReportNextData() == MpdResponseReader.NextData.BinaryData);
+
+                        binaryResponse = ms.ToArray();
+                    }
+                }
+                else // else, read string as usual
+                {
+                    responseLine = reader.ReadString();
+
                     if (responseLine == null)
                     {
                         break;
                     }
 
                     response.Add(responseLine);
+
+                    if (responseLine.Equals(Constants.Ok) || responseLine.StartsWith(Constants.Ack))
+                    {
+                        // Stop reading the stream
+                        break;
+                    }
+
                 }
-                while (!(responseLine.Equals(Constants.Ok) || responseLine.StartsWith(Constants.Ack)));
+
             }
 
-            return response;
+            return new Tuple<byte[], IReadOnlyList<string>>(binaryResponse, response);
         }
 
-        private Task DisconnectAsync(bool isExplicitDisconnect)
+        private void Disconnect(bool isExplicitDisconnect)
         {
-            if (this.tcpClient == null)
+            if (tcpClient == null)
             {
-                return Task.CompletedTask;
+                return;
             }
 
-            this.mpcConnectionReporter?.Disconnecting(isExplicitDisconnect);
-            this.ClearConnectionFields();
-            this.mpcConnectionReporter?.Disconnected(isExplicitDisconnect);
-            return Task.CompletedTask;
+            ClearConnectionFields();
+
+            if (isExplicitDisconnect)
+                Disconnected?.Invoke(this, new EventArgs());
         }
 
         private void ClearConnectionFields()
         {
-            this.networkStream?.Dispose();
-            this.tcpClient?.Dispose();
-            this.Version = string.Empty;
-            this.tcpClient = null;
-            this.networkStream = null;
+            networkStream?.Dispose();
+            tcpClient?.Dispose();
+            Version = string.Empty;
+            tcpClient = null;
+            networkStream = null;
         }
     }
 }

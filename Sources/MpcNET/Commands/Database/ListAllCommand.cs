@@ -11,7 +11,7 @@ namespace MpcNET.Commands.Database
     using MpcNET.Types;
 
     /// <summary>
-    /// Lists all songs and directories in URI.
+    /// Lists all songs and directories.
     /// https://www.musicpd.org/doc/protocol/database.html.
     /// </summary>
     public class ListAllCommand : IMpcCommand<IEnumerable<MpdDirectory>>
@@ -31,14 +31,14 @@ namespace MpcNET.Commands.Database
         /// <returns>
         /// The deserialized response.
         /// </returns>
-        public IEnumerable<MpdDirectory> Deserialize(IReadOnlyList<KeyValuePair<string, string>> response)
+        public IEnumerable<MpdDirectory> Deserialize(SerializedResponse response)
         {
             var rootDirectory = new List<MpdDirectory>
             {
                 new MpdDirectory("/"), // Add by default the root directory
             };
 
-            foreach (var line in response)
+            foreach (var line in response.ResponseValues)
             {
                 if (line.Key.Equals("file"))
                 {

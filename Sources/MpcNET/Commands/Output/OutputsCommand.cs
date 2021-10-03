@@ -7,6 +7,7 @@
 namespace MpcNET.Commands.Output
 {
     using System.Collections.Generic;
+    using System.Linq;
     using MpcNET.Types;
 
     /// <summary>
@@ -30,17 +31,21 @@ namespace MpcNET.Commands.Output
         /// <returns>
         /// The deserialized response.
         /// </returns>
-        public IEnumerable<MpdOutput> Deserialize(IReadOnlyList<KeyValuePair<string, string>> response)
+        public IEnumerable<MpdOutput> Deserialize(SerializedResponse response)
         {
             var result = new List<MpdOutput>();
 
-            for (var i = 0; i < response.Count; i += 3)
-            {
-                var outputId = int.Parse(response[i].Value);
-                var outputName = response[i + 1].Value;
-                var outputEnabled = response[i + 2].Value == "1";
+            // Strip out attributes so we can keep parsing the response by blocks of 4
+            var strippedResult = response.ResponseValues.Where(kvp => kvp.Key != "attribute").ToList();
 
-                result.Add(new MpdOutput(outputId, outputName, outputEnabled));
+            for (var i = 0; i < strippedResult.Count; i+=4)
+            {
+                var outputId = int.Parse(strippedResult[i].Value);
+                var outputName = strippedResult[i + 1].Value;
+                var outputPlugin = strippedResult[i + 2].Value;
+                var outputEnabled = strippedResult[i + 3].Value == "1";
+
+                result.Add(new MpdOutput(outputId, outputName, outputPlugin, outputEnabled));
             }
 
             return result;
