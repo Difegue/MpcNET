@@ -1,8 +1,9 @@
-<img src="Sources/MpcNET/icon.png" width="128">
+<img src="icon.png" width="128">
   
 MpcNET
 ===========
-Pure .NET Client Library for [**Music Player Daemon**](https://www.musicpd.org/) Servers.
+Pure .NET Client Library for [**Music Player Daemon**](https://www.musicpd.org/) Servers.  
+The heart and soul of [Stylophone](https://github.com/Difegue/Stylophone).
 
 ## Usage
 ### Connection
