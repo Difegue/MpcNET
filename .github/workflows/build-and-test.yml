@@ -31,7 +31,7 @@ jobs:
       working-directory: ./Sources
       run: |
         msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
-        
+
     # Build package and upload to github packages
     - name: Build package
       working-directory: ./Sources
@@ -39,7 +39,7 @@ jobs:
         dotnet nuget add source --username Difegue --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/Difegue/index.json"
         dotnet build $env:Solution_Name --configuration $env:Configuration
         dotnet pack --configuration $env:Configuration -o ./ 
-        dotnet nuget push *.nupkg  --api-key ${{ secrets.GITHUB_TOKEN }} --source "github"
+        dotnet nuget push *.nupkg  --api-key ${{ secrets.GITHUB_TOKEN }} --source "github" --skip-duplicate
 
     # Execute all unit tests in the solution
     #- name: Execute unit tests
