@@ -1,10 +1,8 @@
-name: Build and Test MpcNET
+name: New Version Release
 
-on:
-  push:
-    branches: [ dev ]
-  pull_request:
-    branches: [ dev ]
+on: 
+  release:
+    types: [published]
 
 jobs:
 
@@ -36,13 +34,6 @@ jobs:
     - name: Build package
       working-directory: ./Sources
       run: |
-        dotnet nuget add source --username Difegue --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/Difegue/index.json"
         dotnet build $env:Solution_Name --configuration $env:Configuration
         dotnet pack --configuration $env:Configuration -o ./
-        dotnet nuget push *.nupkg  --api-key ${{ secrets.GITHUB_TOKEN }} --source "github"
-
-    # Execute all unit tests in the solution
-    - name: Execute unit tests
-      working-directory: ./Sources
-      run: dotnet test
-
+        dotnet nuget push *.nupkg  --api-key ${{ secrets.NUGET_API }} --source "nuget.org"
