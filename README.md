@@ -5,7 +5,10 @@ MpcNET
 Pure .NET Client Library for [**Music Player Daemon**](https://www.musicpd.org/) Servers.  
 The heart and soul of [Stylophone](https://github.com/Difegue/Stylophone).
 
+[**Nightly Packages**](https://github.com/Difegue/MpcNET/packages/) - [**Stable Versions**](https://www.nuget.org/packages/MpcNET/) 
+
 ## Usage
+
 ### Connection
 To create a client for MPD, you must first create a `IPEndPoint` for the Server with the right IP and Port. 
 ````C#
