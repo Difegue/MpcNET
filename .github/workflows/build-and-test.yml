@@ -10,15 +10,12 @@ jobs:
 
   build:
 
-    strategy:
-      matrix:
-        configuration: [Debug, Release]
-
     runs-on: windows-latest  # For a list of available runner types, refer to
                              # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
 
     env:
-      Solution_Name: MpcNET         
+      Solution_Name: MpcNET    
+      Configuration: Release     
 
     steps:
     - name: Checkout
@@ -35,11 +32,18 @@ jobs:
       working-directory: ./Sources
       run: |
         msbuild $env:Solution_Name /t:Restore /p:Configuration=$env:Configuration
-        msbuild $env:Uap_Project_Directory /t:Restore /p:Configuration=$env:Configuration
-      env:
-        Configuration: ${{ matrix.configuration }}
+
+    # Build package and upload to github packages
+    - name: Build package
+      working-directory: ./Sources
+      run: |
+        dotnet nuget add source --username Difegue --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/Difegue/index.json"
+        dotnet build $env:Solution_Name --configuration $env:Configuration
+        dotnet pack --configuration $env:Configuration -o ./
+        dotnet nuget push *.nupkg  --api-key ${{ secrets.PRIVATE_TOKEN }} --source "github"
 
     # Execute all unit tests in the solution
     - name: Execute unit tests
       working-directory: ./Sources
       run: dotnet test
+
