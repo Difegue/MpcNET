@@ -174,12 +174,10 @@ namespace MpcNET.Commands.Database
         /// </returns>
         public string Serialize()
         {
-            var cmd =
-            CommandName + " \"(" +
-            string.Join(" AND ",
+            var serializedFilters = string.Join(" AND ",
                   filters.Select(x => $"({x.Key.Value} {Operand} {escape(x.Value)})")
-                  ) +
-            ")\"";
+                  );
+            var cmd = $@"{CommandName} ""({serializedFilters})""";
 
             if (_start > -1)
             {
@@ -201,7 +199,30 @@ namespace MpcNET.Commands.Database
             return MpdFile.CreateList(response.ResponseValues);
         }
 
-        private string escape(string value) => string.Format("\\\"{0}\\\"", value.Replace("\\", "\\\\\\").Replace("'", "\\\\'").Replace("\"", "\\\\\\\""));
+        /// <summary>
+        /// String values are quoted with single or double quotes, 
+        /// and special characters within those values must be escaped with the backslash (\). 
+        /// Keep in mind that the backslash is also the escape character on the protocol level, 
+        /// which means you may need to use double backslash. 
+        /// 
+        /// Example expression which matches an artist named foo'bar":
+        /// (Artist == "foo\'bar\"")
+        /// 
+        /// At the protocol level, the command must look like this:
+        /// find "(Artist == \"foo\\'bar\\\"\")"
+        /// 
+        /// (https://mpd.readthedocs.io/en/stable/protocol.html#filter-syntax)
+        /// </summary>
+        /// <param name="value">Value to escape</param>
+        /// <returns></returns>
+        private string escape(string value)
+        {
+            var escapedValue = value.Replace(@"\", @"\\\\")
+                                    .Replace("'", @"\\'")
+                                    .Replace(@"""", @"\\\""");
+
+            return $@"\""{escapedValue}\""";
+        }
     }
     // TODO: rescan
 }
