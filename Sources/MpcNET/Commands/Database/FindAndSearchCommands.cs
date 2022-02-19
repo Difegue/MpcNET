@@ -7,9 +7,243 @@
 namespace MpcNET.Commands.Database
 {
     using System.Collections.Generic;
+    using System.ComponentModel;
     using System.Linq;
     using MpcNET.Tags;
     using MpcNET.Types;
+
+    /// <summary>
+    /// Operators available for filters in the protocol
+    /// </summary>
+    public enum FilterOperator
+    {
+        /// <summary>
+        /// Equal (==)
+        /// </summary>
+        [Description("==")]
+        Equal,
+        /// <summary>
+        /// Different (!=)
+        /// </summary>
+        [Description("!=")]
+        Different,
+        /// <summary>
+        /// Contains (contains)
+        /// </summary>
+        [Description("contains")]
+        Contains,
+        /// <summary>
+        /// Mask (=~)
+        /// </summary>
+        [Description("=~")]
+        Mask,
+        /// <summary>
+        /// None ("")
+        /// </summary>
+        [Description("")]
+        None,
+    }
+
+    /// <summary>
+    /// </summary>
+    public static class EnumHelper
+    {
+        /// <summary>
+        /// <see cref="GetDescription"/> of the enum
+        /// </summary>
+        /// <param name="enumValue"></param>
+        public static string GetDescription<T>(this T enumValue)
+            where T : struct, System.IConvertible
+        {
+            if (!typeof(T).IsEnum)
+                return null;
+
+            string description = enumValue.ToString();
+            System.Reflection.FieldInfo fieldInfo = enumValue.GetType().GetField(enumValue.ToString());
+
+            if (fieldInfo != null)
+            {
+                object[] attributes = fieldInfo.GetCustomAttributes(typeof(DescriptionAttribute), true);
+                if (attributes != null && attributes.Length > 0)
+                    description = ((DescriptionAttribute)attributes[0]).Description;
+            }
+
+            return description;
+        }
+    }
+
+    /// <summary>
+    /// Filter interface specialized by filters in the protocol
+    /// </summary>
+    public abstract class IFilter
+    {
+        /// <summary>
+        /// Name of the filter
+        /// </summary>
+        public string Name;
+        /// <summary>
+        /// Operator of the filter
+        /// </summary>
+        public FilterOperator Operator;
+        /// <summary>
+        /// Value to test
+        /// </summary>
+        public string Value;
+        /// <summary>
+        /// If the expression is negated
+        /// </summary>
+        public bool Negation;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IFilter"/> class.
+        /// </summary>
+        /// <param name="Name">Name of the filter</param>
+        /// <param name="Operator">Operator of the filter</param>
+        /// <param name="Value">Value to test</param>
+        /// <param name="Negation">If the expression is negated</param>
+        public IFilter(string Name, FilterOperator Operator, string Value, bool Negation = false)
+        {
+            this.Name = Name;
+            this.Operator = Operator;
+            this.Value = Value;
+            this.Negation = Negation;
+        }
+
+        /// <summary>
+        /// Gets the formatted command
+        /// </summary>
+        public string GetFormattedCommand()
+        {
+            string make = "";
+
+            if (Negation)
+                make += "(!";
+
+            make += "(" + Name + " ";
+            make += Operator.GetDescription();
+            make += " " + "\\\"" + Value + "\\\"" + ")";
+
+            if (Negation)
+                make += ")";
+
+            return make;
+        }
+    }
+
+    /// <summary>
+    /// Filter "file"
+    /// </summary>
+    public class FilterFile : IFilter
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FilterFile"/> class.
+        /// </summary>
+        /// <param name="Operator">Operator of the filter</param>
+        /// <param name="Value">Value to test</param>
+        /// <param name="Negation">If the expression is negated</param>
+        public FilterFile(string Value, FilterOperator Operator, bool Negation = false) : base("file", Operator, Value, Negation)
+        {
+            if (Operator != FilterOperator.Equal)
+                throw new System.ArgumentException("Operator is not compatible: for \"File\" use FilterOperator.Equal.");
+
+            this.Name = "file";
+            this.Value = Value;
+            this.Operator = Operator;
+            this.Negation = Negation;
+        }
+    }
+
+    /// <summary>
+    /// Filter "TAG"
+    /// </summary>
+    public class FilterTag : IFilter
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FilterTag"/> class.
+        /// </summary>
+        /// <param name="Tag">The tag.</param>
+        /// <param name="Operator">Operator of the filter</param>
+        /// <param name="Value">Value to test</param>
+        /// <param name="Negation">If the expression is negated</param>
+        public FilterTag(ITag Tag, string Value, FilterOperator Operator, bool Negation = false) : base(Tag.Value, Operator, Value, Negation)
+        {
+            if (Operator != FilterOperator.Equal && Operator != FilterOperator.Different && Operator != FilterOperator.Contains)
+                throw new System.ArgumentException("Operator is not compatible: for \"TAG\" use FilterOperator.Equal, FilterOperator.Different or FilterOperator.Contains.");
+
+            this.Value = Value;
+            this.Operator = Operator;
+            this.Negation = Negation;
+        }
+    }
+
+    /// <summary>
+    /// Filter "base" (not the interface base class, the base command: restrict search songs to a directory)
+    /// </summary>
+    public class FilterBase : IFilter
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FilterBase"/> class.
+        /// </summary>
+        /// <param name="Operator">Operator of the filter</param>
+        /// <param name="Value">Value to test</param>
+        /// <param name="Negation">If the expression is negated</param>
+        public FilterBase(string Value, FilterOperator Operator, bool Negation = false) : base("base", Operator, Value, Negation)
+        {
+            if (Operator != FilterOperator.None)
+                throw new System.ArgumentException("Operator is not compatible: for \"base\" use FilterOperator.None.");
+
+            this.Name = "base";
+            this.Value = Value;
+            this.Operator = Operator;
+            this.Negation = Negation;
+        }
+    }
+
+    /// <summary>
+    /// Filter "modified-since"
+    /// </summary>
+    public class FilterModifiedSince : IFilter
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FilterModifiedSince"/> class.
+        /// </summary>
+        /// <param name="Operator">Operator of the filter</param>
+        /// <param name="Value">Value to test</param>
+        /// <param name="Negation">If the expression is negated</param>
+        public FilterModifiedSince(string Value, FilterOperator Operator, bool Negation = false) : base("modified-since", Operator, Value, Negation)
+        {
+            if (Operator != FilterOperator.None)
+                throw new System.ArgumentException("Operator is not compatible: for \"ModifiedSince\" use FilterOperator.None.");
+
+            this.Name = "modified-since";
+            this.Value = Value;
+            this.Operator = Operator;
+            this.Negation = Negation;
+        }
+    }
+
+    /// <summary>
+    /// Filter "AudioFormat"
+    /// </summary>
+    public class FilterAudioFormat : IFilter
+    {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FilterAudioFormat"/> class.
+        /// </summary>
+        /// <param name="Operator">Operator of the filter</param>
+        /// <param name="Value">Value to test</param>
+        /// <param name="Negation">If the expression is negated</param>
+        public FilterAudioFormat(string Value, FilterOperator Operator, bool Negation = false) : base("AudioFormat", Operator, Value, Negation)
+        {
+            if (Operator != FilterOperator.Equal && Operator != FilterOperator.Mask)
+                throw new System.ArgumentException("Operator is not compatible: for \"AudioFormat\" use FilterOperator.Equal or FilterOperator.Mask.");
+
+            this.Name = "AudioFormat";
+            this.Value = Value;
+            this.Operator = Operator;
+            this.Negation = Negation;
+        }
+    }
 
     /// <summary>
     /// Finds songs in the database that contain "searchText".
@@ -43,6 +277,22 @@ namespace MpcNET.Commands.Database
         /// <param name="windowStart">Start of the portion of the results desired</param>
         /// <param name="windowEnd">End of the portion of the results desired</param>
         public SearchCommand(List<KeyValuePair<ITag, string>> filters, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchCommand"/> class.
+        /// </summary>
+        /// <param name="filter">Filter</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public SearchCommand(IFilter filter, int windowStart = -1, int windowEnd = -1) : base(filter, windowStart, windowEnd) { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchCommand"/> class.
+        /// </summary>
+        /// <param name="filters">List of filters</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public SearchCommand(List<IFilter> filters, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { }
 
     }
 
@@ -79,6 +329,21 @@ namespace MpcNET.Commands.Database
         /// <param name="windowEnd">End of the portion of the results desired</param>
         public SearchAddCommand(List<KeyValuePair<ITag, string>> filters, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchCommand"/> class.
+        /// </summary>
+        /// <param name="filter">Filter</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public SearchAddCommand(IFilter filter, int windowStart = -1, int windowEnd = -1) : base(filter, windowStart, windowEnd) { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchCommand"/> class.
+        /// </summary>
+        /// <param name="filters">List of filters</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public SearchAddCommand(List<IFilter> filters, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { }
     }
 
     /// <summary>
@@ -114,15 +379,31 @@ namespace MpcNET.Commands.Database
         /// <param name="windowEnd">End of the portion of the results desired</param>
         public FindCommand(List<KeyValuePair<ITag, string>> filters, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FindCommand"/> class.
+        /// </summary>
+        /// <param name="filter">Filter</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public FindCommand(IFilter filter, int windowStart = -1, int windowEnd = -1) : base(filter, windowStart, windowEnd) { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FindCommand"/> class.
+        /// </summary>
+        /// <param name="filters">List of filters</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public FindCommand(List<IFilter> filters, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { }
+
     }
 
-   
     /// <summary>
     /// Base class for find/search commands.
     /// </summary>
     public abstract class BaseFilterCommand : IMpcCommand<IEnumerable<IMpdFile>>
     {
-        private readonly List<KeyValuePair<ITag, string>> filters;
+        private readonly List<KeyValuePair<ITag, string>> tagFilters;
+        private readonly List<IFilter> completeFilters;
         private readonly int _start;
         private readonly int _end;
 
@@ -145,8 +426,8 @@ namespace MpcNET.Commands.Database
         /// <param name="windowEnd">End of the portion of the results desired</param>
         public BaseFilterCommand(ITag tag, string searchText, int windowStart = -1, int windowEnd = -1)
         {
-            this.filters = new List<KeyValuePair<ITag, string>>();
-            this.filters.Add(new KeyValuePair<ITag, string>(tag, searchText));
+            tagFilters = new List<KeyValuePair<ITag, string>>();
+            tagFilters.Add(new KeyValuePair<ITag, string>(tag, searchText));
 
             _start = windowStart;
             _end = windowEnd;
@@ -160,7 +441,36 @@ namespace MpcNET.Commands.Database
         /// <param name="windowEnd">End of the portion of the results desired</param>
         public BaseFilterCommand(List<KeyValuePair<ITag, string>> filters, int windowStart = -1, int windowEnd = -1)
         {
-            this.filters = filters;
+            tagFilters = filters;
+
+            _start = windowStart;
+            _end = windowEnd;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BaseFilterCommand"/> class.
+        /// </summary>
+        /// <param name="filters">Filter</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public BaseFilterCommand(IFilter filters, int windowStart = -1, int windowEnd = -1)
+        {
+            completeFilters = new List<IFilter>();
+            completeFilters.Add(filters);
+
+            _start = windowStart;
+            _end = windowEnd;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BaseFilterCommand"/> class.
+        /// </summary>
+        /// <param name="filters">List of filters</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public BaseFilterCommand(List<IFilter> filters, int windowStart = -1, int windowEnd = -1)
+        {
+            completeFilters = filters;
 
             _start = windowStart;
             _end = windowEnd;
@@ -170,14 +480,27 @@ namespace MpcNET.Commands.Database
         /// Serializes the command.
         /// </summary>
         /// <returns>
-        /// The serialize command.
+        /// The serialized command.
         /// </returns>
         public string Serialize()
         {
-            var serializedFilters = string.Join(" AND ",
-                  filters.Select(x => $"({x.Key.Value} {Operand} {escape(x.Value)})")
-                  );
-            var cmd = $@"{CommandName} ""({serializedFilters})""";
+            string cmd = "";
+
+            if (tagFilters != null)
+            {
+                var serializedFilters = string.Join(" AND ",
+                    tagFilters.Select(x => $"({x.Key.Value} {Operand} {escape(x.Value)})")
+                );
+                cmd = $@"{CommandName} ""({serializedFilters})""";
+            }
+
+            if (completeFilters != null)
+            {
+                var serializedFilters = string.Join(" AND ",
+                    completeFilters.Select(x => $"{x.GetFormattedCommand()}")
+                );
+                cmd = $@"{CommandName} ""({serializedFilters})""";
+            }
 
             if (_start > -1)
             {
