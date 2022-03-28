@@ -100,8 +100,6 @@ namespace MpcNET.Types
         }
 
         /// <summary>
-        /// Gets the formatted command
-        /// 
         /// String values are quoted with single or double quotes, 
         /// and special characters within those values must be escaped with the backslash (\). 
         /// Keep in mind that the backslash is also the escape character on the protocol level, 
@@ -115,21 +113,28 @@ namespace MpcNET.Types
         /// 
         /// (https://mpd.readthedocs.io/en/stable/protocol.html#filters)
         /// </summary>
+        /// <param name="value">Value to escape</param>
+        /// <returns></returns>
+        private string escape(string value)
+        {
+            var escapedValue = value.Replace(@"\", @"\\\\")
+                                    .Replace("'", @"\\'")
+                                    .Replace(@"""", @"\\\""");
+
+            return $@"\""{escapedValue}\""";
+        }
+
+        /// <summary>
+        /// Gets the formatted command
+        /// </summary>
         public string GetFormattedCommand()
         {
-            string make = "";
+            string command = $"({Name} {Operator.GetDescription()} {escape(Value)})";
 
             if (Negation)
-                make += "(!";
-
-            make += "(" + Name + " ";
-            make += Operator.GetDescription();
-            make += " " + "\\\"" + Value + "\\\"" + ")";
-
-            if (Negation)
-                make += ")";
-
-            return make;
+                return $"(!{command})";
+            else
+                return command;
         }
     }
 }
