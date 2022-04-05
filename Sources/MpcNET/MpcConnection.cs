@@ -190,7 +190,8 @@ namespace MpcNET
                 .RetryAsync(isReconnect ? 0 : 3)
                 .ExecuteAndCaptureAsync(async (t) =>
                 {
-                    var client = new TcpClient();
+                    var client = new TcpClient(AddressFamily.InterNetworkV6);
+                    client.Client.DualMode = true; // Enable both IPv4 and IPv6
                     using (t.Register(() => client.Close()))
                     {
                         try

@@ -10,11 +10,12 @@ namespace MpcNET.Commands.Database
     using System.Linq;
     using MpcNET.Tags;
     using MpcNET.Types;
+    using MpcNET.Types.Filters;
 
     /// <summary>
     /// Finds songs in the database that contain "searchText".
     /// Since MPD 0.21, search syntax is now (TAG == 'VALUE').
-    /// https://www.musicpd.org/doc/html/protocol.html#filters
+    /// https://mpd.readthedocs.io/en/stable/protocol.html#filters
     /// </summary>
     public class SearchCommand : BaseFilterCommand
     {
@@ -22,16 +23,12 @@ namespace MpcNET.Commands.Database
         /// 
         /// </summary>
         public override string CommandName => "search";
-        /// <summary>
-        /// 
-        /// </summary>
-        public override string Operand => "contains";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SearchCommand"/> class.
         /// </summary>
         /// <param name="tag">The tag.</param>
-        /// <param name="searchText">The search text.</param>        
+        /// <param name="searchText">The search text.</param>
         /// <param name="windowStart">Start of the portion of the results desired</param>
         /// <param name="windowEnd">End of the portion of the results desired</param>
         public SearchCommand(ITag tag, string searchText, int windowStart = -1, int windowEnd = -1) : base(tag, searchText, windowStart, windowEnd) { }
@@ -44,12 +41,28 @@ namespace MpcNET.Commands.Database
         /// <param name="windowEnd">End of the portion of the results desired</param>
         public SearchCommand(List<KeyValuePair<ITag, string>> filters, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchCommand"/> class.
+        /// </summary>
+        /// <param name="filter">Filter</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public SearchCommand(IFilter filter, int windowStart = -1, int windowEnd = -1) : base(filter, windowStart, windowEnd) { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchCommand"/> class.
+        /// </summary>
+        /// <param name="filters">List of filters</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public SearchCommand(List<IFilter> filters, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { }
+
     }
 
     /// <summary>
     /// Finds songs in the database that contain "searchText" and adds them to the queue.
     /// Since MPD 0.21, search syntax is now (TAG == 'VALUE').
-    /// https://www.musicpd.org/doc/html/protocol.html#filters
+    /// https://mpd.readthedocs.io/en/stable/protocol.html#filters
     /// </summary>
     public class SearchAddCommand : BaseFilterCommand
     {
@@ -57,13 +70,9 @@ namespace MpcNET.Commands.Database
         /// 
         /// </summary>
         public override string CommandName => "searchadd";
-        /// <summary>
-        /// 
-        /// </summary>
-        public override string Operand => "contains";
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SearchCommand"/> class.
+        /// Initializes a new instance of the <see cref="SearchAddCommand"/> class.
         /// </summary>
         /// <param name="tag">The tag.</param>
         /// <param name="searchText">The search text.</param>        
@@ -72,19 +81,34 @@ namespace MpcNET.Commands.Database
         public SearchAddCommand(ITag tag, string searchText, int windowStart = -1, int windowEnd = -1) : base(tag, searchText, windowStart, windowEnd) { }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="SearchCommand"/> class.
+        /// Initializes a new instance of the <see cref="SearchAddCommand"/> class.
         /// </summary>
         /// <param name="filters">List of key/value filters</param>
         /// <param name="windowStart">Start of the portion of the results desired</param>
         /// <param name="windowEnd">End of the portion of the results desired</param>
         public SearchAddCommand(List<KeyValuePair<ITag, string>> filters, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchAddCommand"/> class.
+        /// </summary>
+        /// <param name="filter">Filter</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public SearchAddCommand(IFilter filter, int windowStart = -1, int windowEnd = -1) : base(filter, windowStart, windowEnd) { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchAddCommand"/> class.
+        /// </summary>
+        /// <param name="filters">List of filters</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public SearchAddCommand(List<IFilter> filters, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { }
     }
 
     /// <summary>
     /// Finds songs in the database that is exactly "searchText".
     /// Since MPD 0.21, search syntax is now (TAG == 'VALUE').
-    /// https://www.musicpd.org/doc/html/protocol.html#filters
+    /// https://mpd.readthedocs.io/en/stable/protocol.html#filters
     /// </summary>
     public class FindCommand : BaseFilterCommand
     {
@@ -92,10 +116,6 @@ namespace MpcNET.Commands.Database
         /// 
         /// </summary>
         public override string CommandName => "find";
-        /// <summary>
-        /// 
-        /// </summary>
-        public override string Operand => "==";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FindCommand"/> class.
@@ -114,15 +134,30 @@ namespace MpcNET.Commands.Database
         /// <param name="windowEnd">End of the portion of the results desired</param>
         public FindCommand(List<KeyValuePair<ITag, string>> filters, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FindCommand"/> class.
+        /// </summary>
+        /// <param name="filter">Filter</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public FindCommand(IFilter filter, int windowStart = -1, int windowEnd = -1) : base(filter, windowStart, windowEnd) { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FindCommand"/> class.
+        /// </summary>
+        /// <param name="filters">List of filters</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public FindCommand(List<IFilter> filters, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { }
+
     }
 
-   
     /// <summary>
     /// Base class for find/search commands.
     /// </summary>
     public abstract class BaseFilterCommand : IMpcCommand<IEnumerable<IMpdFile>>
     {
-        private readonly List<KeyValuePair<ITag, string>> filters;
+        private readonly List<IFilter> _filters;
         private readonly int _start;
         private readonly int _end;
 
@@ -130,11 +165,6 @@ namespace MpcNET.Commands.Database
         /// Name of the command to use when deserializing
         /// </summary>
         public abstract string CommandName { get; }
-        /// <summary>
-        /// Operand to use between tags and search text. Can be ==, !=, contains...
-        /// </summary>
-        public abstract string Operand { get; }
-
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseFilterCommand"/> class.
@@ -143,10 +173,12 @@ namespace MpcNET.Commands.Database
         /// <param name="searchText">The search text.</param>
         /// <param name="windowStart">Start of the portion of the results desired</param>
         /// <param name="windowEnd">End of the portion of the results desired</param>
-        public BaseFilterCommand(ITag tag, string searchText, int windowStart = -1, int windowEnd = -1)
+        /// <param name="operand">Operator of the filter</param>
+        public BaseFilterCommand(ITag tag, string searchText, int windowStart = -1, int windowEnd = -1, FilterOperator operand = FilterOperator.Equal)
         {
-            this.filters = new List<KeyValuePair<ITag, string>>();
-            this.filters.Add(new KeyValuePair<ITag, string>(tag, searchText));
+            _filters = new List<IFilter>();
+            FilterTag Tag = new FilterTag(tag, searchText, operand);
+            _filters.Add(Tag);
 
             _start = windowStart;
             _end = windowEnd;
@@ -158,9 +190,40 @@ namespace MpcNET.Commands.Database
         /// <param name="filters">List of key/value filters</param>
         /// <param name="windowStart">Start of the portion of the results desired</param>
         /// <param name="windowEnd">End of the portion of the results desired</param>
-        public BaseFilterCommand(List<KeyValuePair<ITag, string>> filters, int windowStart = -1, int windowEnd = -1)
+        /// <param name="operand">Operator of the filter</param>
+        public BaseFilterCommand(List<KeyValuePair<ITag, string>> filters, int windowStart = -1, int windowEnd = -1, FilterOperator operand = FilterOperator.Equal)
         {
-            this.filters = filters;
+            _filters = new List<IFilter>();
+            _filters.AddRange(filters.Select(filter => new FilterTag(filter.Key, filter.Value, operand)).ToList());
+
+            _start = windowStart;
+            _end = windowEnd;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BaseFilterCommand"/> class.
+        /// </summary>
+        /// <param name="filters">Filter</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public BaseFilterCommand(IFilter filters, int windowStart = -1, int windowEnd = -1)
+        {
+            _filters = new List<IFilter>();
+            _filters.Add(filters);
+
+            _start = windowStart;
+            _end = windowEnd;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BaseFilterCommand"/> class.
+        /// </summary>
+        /// <param name="filters">List of filters</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public BaseFilterCommand(List<IFilter> filters, int windowStart = -1, int windowEnd = -1)
+        {
+            _filters = filters;
 
             _start = windowStart;
             _end = windowEnd;
@@ -170,14 +233,19 @@ namespace MpcNET.Commands.Database
         /// Serializes the command.
         /// </summary>
         /// <returns>
-        /// The serialize command.
+        /// The serialized command.
         /// </returns>
         public string Serialize()
         {
-            var serializedFilters = string.Join(" AND ",
-                  filters.Select(x => $"({x.Key.Value} {Operand} {escape(x.Value)})")
-                  );
-            var cmd = $@"{CommandName} ""({serializedFilters})""";
+            string cmd = "";
+
+            if (_filters != null)
+            {
+                var serializedFilters = string.Join(" AND ",
+                    _filters.Select(x => $"{x.GetFormattedCommand()}")
+                );
+                cmd = $@"{CommandName} ""({serializedFilters})""";
+            }
 
             if (_start > -1)
             {
@@ -197,31 +265,6 @@ namespace MpcNET.Commands.Database
         public IEnumerable<IMpdFile> Deserialize(SerializedResponse response)
         {
             return MpdFile.CreateList(response.ResponseValues);
-        }
-
-        /// <summary>
-        /// String values are quoted with single or double quotes, 
-        /// and special characters within those values must be escaped with the backslash (\). 
-        /// Keep in mind that the backslash is also the escape character on the protocol level, 
-        /// which means you may need to use double backslash. 
-        /// 
-        /// Example expression which matches an artist named foo'bar":
-        /// (Artist == "foo\'bar\"")
-        /// 
-        /// At the protocol level, the command must look like this:
-        /// find "(Artist == \"foo\\'bar\\\"\")"
-        /// 
-        /// (https://mpd.readthedocs.io/en/stable/protocol.html#filter-syntax)
-        /// </summary>
-        /// <param name="value">Value to escape</param>
-        /// <returns></returns>
-        private string escape(string value)
-        {
-            var escapedValue = value.Replace(@"\", @"\\\\")
-                                    .Replace("'", @"\\'")
-                                    .Replace(@"""", @"\\\""");
-
-            return $@"\""{escapedValue}\""";
         }
     }
     // TODO: rescan
