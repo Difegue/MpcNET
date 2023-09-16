@@ -39,6 +39,14 @@ namespace MpcNET.Types
         string Artist { get; }
 
         /// <summary>
+        /// Gets the album artist.
+        /// </summary>
+        /// <value>
+        /// The album artist.
+        /// </value>
+        string AlbumArtist { get; }
+
+        /// <summary>
         /// Gets the title.
         /// </summary>
         /// <value>
@@ -140,6 +148,11 @@ namespace MpcNET.Types
         /// Gets a value indicating whether the MpdFile has the <see cref="Artist"/> property set.
         /// </summary>
         bool HasArtist { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether the MpdFile has the <see cref="AlbumArtist"/> property set.
+        /// </summary>
+        bool HasAlbumArtist { get; }
 
         /// <summary>
         /// Gets a value indicating whether the MpdFile has the <see cref="Title"/> property set.
