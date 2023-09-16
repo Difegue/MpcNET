@@ -18,6 +18,7 @@ namespace MpcNET.Types
         internal const string TagTime = "Time";
         internal const string TagArtist = "Artist";
         internal const string TagAlbum = "Album";
+        internal const string TagAlbumArtist = "AlbumArtist";
         internal const string TagTitle = "Title";
         internal const string TagTrack = "Track";
         internal const string TagName = "Name";
@@ -33,6 +34,7 @@ namespace MpcNET.Types
         internal const int NoTime = -1;
         internal const string NoAlbum = null;
         internal const string NoArtist = null;
+        internal const string NoAlbumArtist = null;
         internal const string NoTitle = null;
         internal const string NoTrack = null;
         internal const string NoName = null;
@@ -50,6 +52,7 @@ namespace MpcNET.Types
             int time = NoTime,
             string album = NoAlbum,
             string artist = NoArtist,
+            string albumArtist = NoAlbumArtist,
             string title = NoTitle,
             string track = NoTrack,
             string name = NoName,
@@ -67,6 +70,7 @@ namespace MpcNET.Types
             this.Time = time;
             this.Album = album;
             this.Artist = artist;
+            this.AlbumArtist = albumArtist;
             this.Title = title;
             this.Track = track;
             this.Name = name;
@@ -88,6 +92,8 @@ namespace MpcNET.Types
         public string Album { get; }
 
         public string Artist { get; }
+
+        public string AlbumArtist { get; }
 
         public string Title { get; }
 
@@ -127,6 +133,11 @@ namespace MpcNET.Types
         /// Gets a value indicating whether the MpdFile has the <see cref="Artist"/> property set.
         /// </summary>
         public bool HasArtist => this.Artist != NoArtist;
+
+        /// <summary>
+        /// Gets a value indicating whether the MpdFile has the <see cref="AlbumArtist"/> property set.
+        /// </summary>
+        public bool HasAlbumArtist => this.AlbumArtist != NoAlbumArtist;
 
         /// <summary>
         /// Gets a value indicating whether the MpdFile has the <see cref="Title"/> property set.
@@ -216,6 +227,7 @@ namespace MpcNET.Types
             int time = NoTime;
             string album = NoAlbum;
             string artist = NoArtist;
+            string albumArtist = NoAlbumArtist;
             string title = NoTitle;
             string track = NoTrack;
             string name = NoName;
@@ -241,6 +253,7 @@ namespace MpcNET.Types
                                 time,
                                 album,
                                 artist,
+                                albumArtist,
                                 title,
                                 track,
                                 name,
@@ -264,6 +277,9 @@ namespace MpcNET.Types
                             break;
                         case TagArtist:
                             artist = line.Value;
+                            break;
+                        case TagAlbumArtist:
+                            albumArtist = line.Value;
                             break;
                         case TagTitle:
                             title = line.Value;
@@ -330,6 +346,7 @@ namespace MpcNET.Types
                 time,
                 album,
                 artist,
+                albumArtist,
                 title,
                 track,
                 name,

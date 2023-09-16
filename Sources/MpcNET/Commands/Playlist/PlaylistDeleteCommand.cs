@@ -14,17 +14,32 @@ namespace MpcNET.Commands.Playlist
     public class PlaylistDeleteCommand : IMpcCommand<string>
     {
         private readonly string playlist;
-        private readonly int songpos;
+        private readonly int startpos;
+        private readonly int endpos;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PlaylistDeleteCommand"/> class.
         /// </summary>
         /// <param name="playlistName">The playlist name.</param>
-        /// <param name="songpos">Position of the song to remove</param>
-        public PlaylistDeleteCommand(string playlistName, int songpos)
+        /// <param name="startpos">Position of the song to remove</param>
+        public PlaylistDeleteCommand(string playlistName, int startpos)
         {
             this.playlist = playlistName;
-            this.songpos = songpos;
+            this.startpos = startpos;
+            this.endpos = int.MinValue;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PlaylistDeleteCommand"/> class.
+        /// </summary>
+        /// <param name="playlistName">The playlist name.</param>
+        /// <param name="startpos">Position of the song to remove</param>
+        /// <param name="endpos">Position of the song to remove</param>
+        public PlaylistDeleteCommand(string playlistName, int startpos, int endpos)
+        {
+            this.playlist = playlistName;
+            this.startpos = startpos;
+            this.endpos = endpos;
         }
 
         /// <summary>
@@ -33,7 +48,7 @@ namespace MpcNET.Commands.Playlist
         /// <returns>
         /// The serialize command.
         /// </returns>
-        public string Serialize() => string.Join(" ", "playlistdelete", $"\"{playlist}\"", songpos);
+        public string Serialize() => string.Join(" ", "playlistdelete", $"\"{playlist}\"", endpos != int.MinValue ? $"{startpos}:{endpos}" : $"{startpos}");
 
         /// <summary>
         /// Deserializes the specified response text pairs.

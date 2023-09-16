@@ -16,7 +16,20 @@ namespace MpcNET.Commands.Queue
     public class AddCommand : IMpcCommand<string>
     {
         private readonly string uri;
+        private readonly string position;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AddCommand"/> class.
+        /// </summary>
+        /// <param name="uri">The URI.</param>
+        /// <param name="position">Optional position to place the song at. If the parameter starts with + or -, then it is relative to the current song [8]; 
+        /// e.g. +0 inserts right after the current song and -0 inserts right before the current song (i.e. zero songs between the current song and the newly added song).</param>
+        public AddCommand(string uri, int position)
+        {
+            this.uri = uri;
+            this.position = position.ToString();
+        }
+        
         /// <summary>
         /// Initializes a new instance of the <see cref="AddCommand"/> class.
         /// </summary>
@@ -24,6 +37,7 @@ namespace MpcNET.Commands.Queue
         public AddCommand(string uri)
         {
             this.uri = uri;
+            this.position = "";
         }
 
         /// <summary>
@@ -32,7 +46,7 @@ namespace MpcNET.Commands.Queue
         /// <returns>
         /// The serialize command.
         /// </returns>
-        public string Serialize() => string.Join(" ", "add", $"\"{uri}\"");
+        public string Serialize() => string.Join(" ", "add", $"\"{uri}\"", position);
 
         /// <summary>
         /// Deserializes the specified response text pairs.

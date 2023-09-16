@@ -15,6 +15,7 @@ namespace MpcNET.Commands.Playlist
     {
         private readonly string playlist;
         private readonly string pathUri;
+        private readonly string position;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PlaylistAddCommand"/> class.
@@ -25,6 +26,20 @@ namespace MpcNET.Commands.Playlist
         {
             this.playlist = playlistName;
             this.pathUri = uri;
+            this.position = "";
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PlaylistAddCommand"/> class.
+        /// </summary>
+        /// <param name="playlistName">The playlistn name.</param>
+        /// <param name="uri">The path to add.</param>
+        /// <param name="position">Optional position in the playlist to place the path at.</param>
+        public PlaylistAddCommand(string playlistName, string uri, int position)
+        {
+            this.playlist = playlistName;
+            this.pathUri = uri;
+            this.position = position.ToString();
         }
 
         /// <summary>
@@ -33,7 +48,7 @@ namespace MpcNET.Commands.Playlist
         /// <returns>
         /// The serialize command.
         /// </returns>
-        public string Serialize() => string.Join(" ", "playlistadd", $"\"{playlist}\"", $"\"{pathUri}\"");
+        public string Serialize() => string.Join(" ", "playlistadd", $"\"{playlist}\"", $"\"{pathUri}\"", position);
 
         /// <summary>
         /// Deserializes the specified response text pairs.

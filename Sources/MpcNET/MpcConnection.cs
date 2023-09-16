@@ -191,6 +191,8 @@ namespace MpcNET
                 .ExecuteAndCaptureAsync(async (t) =>
                 {
                     var client = new TcpClient(AddressFamily.InterNetworkV6);
+                    client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true); // Allow socket reuse
+                    client.LingerState = new LingerOption(true, 0); // Make them a bit more ephemeral
                     client.Client.DualMode = true; // Enable both IPv4 and IPv6
                     using (t.Register(() => client.Close()))
                     {
