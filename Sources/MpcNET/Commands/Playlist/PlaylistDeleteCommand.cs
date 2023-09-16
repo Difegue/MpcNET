@@ -22,11 +22,24 @@ namespace MpcNET.Commands.Playlist
         /// </summary>
         /// <param name="playlistName">The playlist name.</param>
         /// <param name="startpos">Position of the song to remove</param>
-        /// <param name="endpos">Position of the song to remove</param>
-        public PlaylistDeleteCommand(string playlistName, int startpos, int endpos = int.MinValue)
+        public PlaylistDeleteCommand(string playlistName, int startpos)
         {
             this.playlist = playlistName;
             this.startpos = startpos;
+            this.endpos = int.MinValue;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PlaylistDeleteCommand"/> class.
+        /// </summary>
+        /// <param name="playlistName">The playlist name.</param>
+        /// <param name="startpos">Position of the song to remove</param>
+        /// <param name="endpos">Position of the song to remove</param>
+        public PlaylistDeleteCommand(string playlistName, int startpos, int endpos)
+        {
+            this.playlist = playlistName;
+            this.startpos = startpos;
+            this.endpos = endpos;
         }
 
         /// <summary>
