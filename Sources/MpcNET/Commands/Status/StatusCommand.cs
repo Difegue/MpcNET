@@ -121,6 +121,16 @@ namespace MpcNET.Commands.Status
                         break;
                     case AudioText:
                         var audioFormat = value.Split(':');
+
+                        if (audioFormat.Length == 2)
+                        {
+                            // Weird edge case with DSD files where the audio format is "dsd64:(channels)"
+                            audioSampleRate = 0;
+                            audioBits = 0;
+                            int.TryParse(audioFormat[1], out audioChannels);
+                            break;
+                        }
+
                         int.TryParse(audioFormat[0], out audioSampleRate);
                         int.TryParse(audioFormat[1], out audioBits);
                         int.TryParse(audioFormat[2], out audioChannels);
