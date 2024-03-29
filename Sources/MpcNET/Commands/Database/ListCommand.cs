@@ -19,6 +19,7 @@ namespace MpcNET.Commands.Database
         private readonly ITag tag;
         private readonly ITag filterTag;
         private readonly string filterValue;
+        private readonly ITag groupTag;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ListCommand"/> class.
@@ -33,13 +34,26 @@ namespace MpcNET.Commands.Database
         /// Initializes a new instance of the <see cref="ListCommand"/> class.
         /// </summary>
         /// <param name="tag">The tag.</param>
+        /// <param name="groupValue">Group value. The group keyword may be used (repeatedly) to group the results by one or more tags.</param>
+        public ListCommand(ITag tag, ITag groupValue)
+        {
+            this.tag = tag;
+            this.groupTag = groupValue;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ListCommand"/> class.
+        /// </summary>
+        /// <param name="tag">The tag.</param>
         /// <param name="filterTag">The filter tag.</param>
         /// <param name="filterValue">Filter value.</param>
-        public ListCommand(ITag tag, ITag filterTag, string filterValue)
+        /// <param name="groupValue">Group value. The group keyword may be used (repeatedly) to group the results by one or more tags.</param>
+        public ListCommand(ITag tag, ITag filterTag, string filterValue, ITag groupValue)
         {
             this.tag = tag;
             this.filterTag = filterTag;
             this.filterValue = filterValue;
+            this.groupTag = groupValue;
         }
 
         /// <summary>
@@ -50,10 +64,16 @@ namespace MpcNET.Commands.Database
         /// </returns>
         public string Serialize()
         {
-            if (this.filterTag == null)
+            if (this.filterTag == null && this.groupTag == null)
                 return string.Join(" ", "list", this.tag.Value);
 
-            return string.Join(" ", "list", this.tag.Value, this.filterTag.Value, escape(this.filterValue));
+            if (this.filterTag == null)
+                return string.Join(" ", "list", this.tag.Value, "group", this.groupTag.Value);
+
+            if (this.groupTag == null)
+                return string.Join(" ", "list", this.tag.Value, this.filterTag.Value, escape(this.filterValue));
+
+            return string.Join(" ", "list", this.tag.Value, this.filterTag.Value, escape(this.filterValue), "group", this.groupTag.Value);
         }
 
         /// <summary>
