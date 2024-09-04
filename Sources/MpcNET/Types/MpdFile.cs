@@ -279,7 +279,7 @@ namespace MpcNET.Types
                             if (artist == NoArtist)
                                 artist = line.Value;
                             else
-                                artist += "| " + line.Value;
+                                artist += " | " + line.Value;
                             break;
                         case TagAlbumArtist:
                             albumArtist = line.Value;
