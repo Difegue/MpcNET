@@ -28,5 +28,75 @@ namespace MpcNET.Test
 
             Assert.IsTrue(response.Response.Content.Count().Equals(7));
         }
+
+        [TestMethod]
+        public void FindAddCommand_Serialize_FilterOnly()
+        {
+            var cmd = new Commands.Database.FindAddCommand(MpdTags.Genre, "rock");
+            Assert.AreEqual(@"findadd ""((genre == \""rock\""))""", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void FindAddCommand_Serialize_WithPosition()
+        {
+            var cmd = new Commands.Database.FindAddCommand(MpdTags.Genre, "rock", "5");
+            Assert.AreEqual(@"findadd ""((genre == \""rock\""))"" position 5", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void FindAddCommand_Serialize_WithRelativePosition()
+        {
+            var cmd = new Commands.Database.FindAddCommand(MpdTags.Genre, "rock", "+0");
+            Assert.AreEqual(@"findadd ""((genre == \""rock\""))"" position +0", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void FindAddCommand_Serialize_WithWindowAndPosition()
+        {
+            var cmd = new Commands.Database.FindAddCommand(MpdTags.Genre, "rock", "+0", 0, 5);
+            Assert.AreEqual(@"findadd ""((genre == \""rock\""))"" window 0:5 position +0", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void SearchAddCommand_Serialize_WithPosition()
+        {
+            var cmd = new Commands.Database.SearchAddCommand(MpdTags.Artist, "test", "3");
+            Assert.AreEqual(@"searchadd ""((artist == \""test\""))"" position 3", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void SearchAddCommand_Serialize_WithRelativePosition()
+        {
+            var cmd = new Commands.Database.SearchAddCommand(MpdTags.Artist, "test", "-0");
+            Assert.AreEqual(@"searchadd ""((artist == \""test\""))"" position -0", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void SearchAddCommand_Serialize_WithoutPosition()
+        {
+            var cmd = new Commands.Database.SearchAddCommand(MpdTags.Artist, "test");
+            Assert.AreEqual(@"searchadd ""((artist == \""test\""))""", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void SearchAddPlCommand_Serialize_Basic()
+        {
+            var cmd = new Commands.Database.SearchAddPlCommand("myplaylist", MpdTags.Genre, "rock");
+            Assert.AreEqual(@"searchaddpl ""myplaylist"" ""((genre == \""rock\""))""", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void SearchAddPlCommand_Serialize_WithPosition()
+        {
+            var cmd = new Commands.Database.SearchAddPlCommand("myplaylist", MpdTags.Genre, "rock", "+0");
+            Assert.AreEqual(@"searchaddpl ""myplaylist"" ""((genre == \""rock\""))"" position +0", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void SearchAddPlCommand_Serialize_WithWindowAndPosition()
+        {
+            var cmd = new Commands.Database.SearchAddPlCommand("myplaylist", MpdTags.Genre, "rock", "2", 0, 10);
+            Assert.AreEqual(@"searchaddpl ""myplaylist"" ""((genre == \""rock\""))"" window 0:10 position 2", cmd.Serialize());
+        }
     }
 }

@@ -103,6 +103,43 @@ namespace MpcNET.Commands.Database
         /// <param name="windowStart">Start of the portion of the results desired</param>
         /// <param name="windowEnd">End of the portion of the results desired</param>
         public SearchAddCommand(List<IFilter> filters, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchAddCommand"/> class.
+        /// </summary>
+        /// <param name="tag">The tag.</param>
+        /// <param name="searchText">The search text.</param>
+        /// <param name="position">Position in the queue to insert at. Supports relative offsets (e.g. "+0", "-0").</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public SearchAddCommand(ITag tag, string searchText, string position, int windowStart = -1, int windowEnd = -1) : base(tag, searchText, windowStart, windowEnd) { _position = position; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchAddCommand"/> class.
+        /// </summary>
+        /// <param name="filters">List of key/value filters</param>
+        /// <param name="position">Position in the queue to insert at. Supports relative offsets (e.g. "+0", "-0").</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public SearchAddCommand(List<KeyValuePair<ITag, string>> filters, string position, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { _position = position; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchAddCommand"/> class.
+        /// </summary>
+        /// <param name="filter">Filter</param>
+        /// <param name="position">Position in the queue to insert at. Supports relative offsets (e.g. "+0", "-0").</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public SearchAddCommand(IFilter filter, string position, int windowStart = -1, int windowEnd = -1) : base(filter, windowStart, windowEnd) { _position = position; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchAddCommand"/> class.
+        /// </summary>
+        /// <param name="filters">List of filters</param>
+        /// <param name="position">Position in the queue to insert at. Supports relative offsets (e.g. "+0", "-0").</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public SearchAddCommand(List<IFilter> filters, string position, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { _position = position; }
     }
 
     /// <summary>
@@ -153,13 +190,222 @@ namespace MpcNET.Commands.Database
     }
 
     /// <summary>
+    /// Finds songs in the database that match exactly and adds them to the queue.
+    /// Since MPD 0.21, search syntax is now (TAG == 'VALUE').
+    /// https://mpd.readthedocs.io/en/stable/protocol.html#filters
+    /// </summary>
+    public class FindAddCommand : BaseFilterCommand
+    {
+        /// <summary>
+        ///
+        /// </summary>
+        public override string CommandName => "findadd";
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FindAddCommand"/> class.
+        /// </summary>
+        /// <param name="tag">The tag.</param>
+        /// <param name="searchText">The search text.</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public FindAddCommand(ITag tag, string searchText, int windowStart = -1, int windowEnd = -1) : base(tag, searchText, windowStart, windowEnd) { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FindAddCommand"/> class.
+        /// </summary>
+        /// <param name="filters">List of key/value filters</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public FindAddCommand(List<KeyValuePair<ITag, string>> filters, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FindAddCommand"/> class.
+        /// </summary>
+        /// <param name="filter">Filter</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public FindAddCommand(IFilter filter, int windowStart = -1, int windowEnd = -1) : base(filter, windowStart, windowEnd) { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FindAddCommand"/> class.
+        /// </summary>
+        /// <param name="filters">List of filters</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public FindAddCommand(List<IFilter> filters, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FindAddCommand"/> class.
+        /// </summary>
+        /// <param name="tag">The tag.</param>
+        /// <param name="searchText">The search text.</param>
+        /// <param name="position">Position in the queue to insert at. Supports relative offsets (e.g. "+0", "-0").</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public FindAddCommand(ITag tag, string searchText, string position, int windowStart = -1, int windowEnd = -1) : base(tag, searchText, windowStart, windowEnd) { _position = position; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FindAddCommand"/> class.
+        /// </summary>
+        /// <param name="filters">List of key/value filters</param>
+        /// <param name="position">Position in the queue to insert at. Supports relative offsets (e.g. "+0", "-0").</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public FindAddCommand(List<KeyValuePair<ITag, string>> filters, string position, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { _position = position; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FindAddCommand"/> class.
+        /// </summary>
+        /// <param name="filter">Filter</param>
+        /// <param name="position">Position in the queue to insert at. Supports relative offsets (e.g. "+0", "-0").</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public FindAddCommand(IFilter filter, string position, int windowStart = -1, int windowEnd = -1) : base(filter, windowStart, windowEnd) { _position = position; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FindAddCommand"/> class.
+        /// </summary>
+        /// <param name="filters">List of filters</param>
+        /// <param name="position">Position in the queue to insert at. Supports relative offsets (e.g. "+0", "-0").</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public FindAddCommand(List<IFilter> filters, string position, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { _position = position; }
+    }
+
+    /// <summary>
+    /// Searches for songs in the database and adds them to a named playlist.
+    /// Since MPD 0.21, search syntax is now (TAG == 'VALUE').
+    /// https://mpd.readthedocs.io/en/stable/protocol.html#filters
+    /// </summary>
+    public class SearchAddPlCommand : BaseFilterCommand
+    {
+        private readonly string _playlistName;
+
+        /// <summary>
+        ///
+        /// </summary>
+        public override string CommandName => "searchaddpl";
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchAddPlCommand"/> class.
+        /// </summary>
+        /// <param name="playlistName">The playlist name.</param>
+        /// <param name="tag">The tag.</param>
+        /// <param name="searchText">The search text.</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public SearchAddPlCommand(string playlistName, ITag tag, string searchText, int windowStart = -1, int windowEnd = -1) : base(tag, searchText, windowStart, windowEnd) { _playlistName = playlistName; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchAddPlCommand"/> class.
+        /// </summary>
+        /// <param name="playlistName">The playlist name.</param>
+        /// <param name="filters">List of key/value filters</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public SearchAddPlCommand(string playlistName, List<KeyValuePair<ITag, string>> filters, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { _playlistName = playlistName; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchAddPlCommand"/> class.
+        /// </summary>
+        /// <param name="playlistName">The playlist name.</param>
+        /// <param name="filter">Filter</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public SearchAddPlCommand(string playlistName, IFilter filter, int windowStart = -1, int windowEnd = -1) : base(filter, windowStart, windowEnd) { _playlistName = playlistName; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchAddPlCommand"/> class.
+        /// </summary>
+        /// <param name="playlistName">The playlist name.</param>
+        /// <param name="filters">List of filters</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public SearchAddPlCommand(string playlistName, List<IFilter> filters, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { _playlistName = playlistName; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchAddPlCommand"/> class.
+        /// </summary>
+        /// <param name="playlistName">The playlist name.</param>
+        /// <param name="tag">The tag.</param>
+        /// <param name="searchText">The search text.</param>
+        /// <param name="position">Position in the playlist to insert at. Supports relative offsets (e.g. "+0", "-0").</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public SearchAddPlCommand(string playlistName, ITag tag, string searchText, string position, int windowStart = -1, int windowEnd = -1) : base(tag, searchText, windowStart, windowEnd) { _playlistName = playlistName; _position = position; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchAddPlCommand"/> class.
+        /// </summary>
+        /// <param name="playlistName">The playlist name.</param>
+        /// <param name="filters">List of key/value filters</param>
+        /// <param name="position">Position in the playlist to insert at. Supports relative offsets (e.g. "+0", "-0").</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public SearchAddPlCommand(string playlistName, List<KeyValuePair<ITag, string>> filters, string position, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { _playlistName = playlistName; _position = position; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchAddPlCommand"/> class.
+        /// </summary>
+        /// <param name="playlistName">The playlist name.</param>
+        /// <param name="filter">Filter</param>
+        /// <param name="position">Position in the playlist to insert at. Supports relative offsets (e.g. "+0", "-0").</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public SearchAddPlCommand(string playlistName, IFilter filter, string position, int windowStart = -1, int windowEnd = -1) : base(filter, windowStart, windowEnd) { _playlistName = playlistName; _position = position; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SearchAddPlCommand"/> class.
+        /// </summary>
+        /// <param name="playlistName">The playlist name.</param>
+        /// <param name="filters">List of filters</param>
+        /// <param name="position">Position in the playlist to insert at. Supports relative offsets (e.g. "+0", "-0").</param>
+        /// <param name="windowStart">Start of the portion of the results desired</param>
+        /// <param name="windowEnd">End of the portion of the results desired</param>
+        public SearchAddPlCommand(string playlistName, List<IFilter> filters, string position, int windowStart = -1, int windowEnd = -1) : base(filters, windowStart, windowEnd) { _playlistName = playlistName; _position = position; }
+
+        /// <summary>
+        /// Serializes the command, inserting the playlist name between command name and filter.
+        /// </summary>
+        public override string Serialize()
+        {
+            string cmd = "";
+
+            if (_filters != null)
+            {
+                var serializedFilters = string.Join(" AND ",
+                    _filters.Select(x => $"{x.GetFormattedCommand()}")
+                );
+                cmd = $@"{CommandName} ""{_playlistName}"" ""({serializedFilters})""";
+            }
+
+            if (_start > -1)
+            {
+                cmd += $" window {_start}:{_end}";
+            }
+
+            if (!string.IsNullOrEmpty(_position))
+            {
+                cmd += $" position {_position}";
+            }
+
+            return cmd;
+        }
+    }
+
+    /// <summary>
     /// Base class for find/search commands.
     /// </summary>
     public abstract class BaseFilterCommand : IMpcCommand<IEnumerable<IMpdFile>>
     {
-        private readonly List<IFilter> _filters;
-        private readonly int _start;
-        private readonly int _end;
+        /// <summary>The list of filters for the command.</summary>
+        protected readonly List<IFilter> _filters;
+        /// <summary>Start of the window range.</summary>
+        protected readonly int _start;
+        /// <summary>End of the window range.</summary>
+        protected readonly int _end;
+        /// <summary>Optional position parameter for queue/playlist insertion.</summary>
+        protected string _position = "";
 
         /// <summary>
         /// Name of the command to use when deserializing
@@ -235,7 +481,7 @@ namespace MpcNET.Commands.Database
         /// <returns>
         /// The serialized command.
         /// </returns>
-        public string Serialize()
+        public virtual string Serialize()
         {
             string cmd = "";
 
@@ -250,6 +496,11 @@ namespace MpcNET.Commands.Database
             if (_start > -1)
             {
                 cmd += $" window {_start}:{_end}";
+            }
+
+            if (!string.IsNullOrEmpty(_position))
+            {
+                cmd += $" position {_position}";
             }
 
             return cmd;

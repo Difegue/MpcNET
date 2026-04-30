@@ -55,6 +55,5 @@ namespace MpcNET.Commands.Database
         }
     }
 
-    // TODO: findadd
     // TODO: rescan
 }
