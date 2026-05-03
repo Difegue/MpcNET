@@ -379,6 +379,11 @@ namespace MpcNET.Commands.Database
                 cmd = $@"{CommandName} ""{_playlistName}"" ""({serializedFilters})""";
             }
 
+            if (!string.IsNullOrEmpty(_sort))
+            {
+                cmd += $" sort {_sort}";
+            }
+
             if (_start > -1)
             {
                 cmd += $" window {_start}:{_end}";
@@ -406,6 +411,8 @@ namespace MpcNET.Commands.Database
         protected readonly int _end;
         /// <summary>Optional position parameter for queue/playlist insertion.</summary>
         protected string _position = "";
+        /// <summary>Optional sort parameter (tag name; prefix with "-" for descending).</summary>
+        protected string _sort = "";
 
         /// <summary>
         /// Name of the command to use when deserializing
@@ -420,7 +427,8 @@ namespace MpcNET.Commands.Database
         /// <param name="windowStart">Start of the portion of the results desired</param>
         /// <param name="windowEnd">End of the portion of the results desired</param>
         /// <param name="operand">Operator of the filter</param>
-        public BaseFilterCommand(ITag tag, string searchText, int windowStart = -1, int windowEnd = -1, FilterOperator operand = FilterOperator.Equal)
+        /// <param name="sort">Optional sort parameter (tag name; prefix with "-" for descending).</param>
+        public BaseFilterCommand(ITag tag, string searchText, int windowStart = -1, int windowEnd = -1, FilterOperator operand = FilterOperator.Equal, string sort = "")
         {
             _filters = new List<IFilter>();
             FilterTag Tag = new FilterTag(tag, searchText, operand);
@@ -428,6 +436,7 @@ namespace MpcNET.Commands.Database
 
             _start = windowStart;
             _end = windowEnd;
+            _sort = sort;
         }
 
         /// <summary>
@@ -437,13 +446,15 @@ namespace MpcNET.Commands.Database
         /// <param name="windowStart">Start of the portion of the results desired</param>
         /// <param name="windowEnd">End of the portion of the results desired</param>
         /// <param name="operand">Operator of the filter</param>
-        public BaseFilterCommand(List<KeyValuePair<ITag, string>> filters, int windowStart = -1, int windowEnd = -1, FilterOperator operand = FilterOperator.Equal)
+        /// <param name="sort">Optional sort parameter (tag name; prefix with "-" for descending).</param>
+        public BaseFilterCommand(List<KeyValuePair<ITag, string>> filters, int windowStart = -1, int windowEnd = -1, FilterOperator operand = FilterOperator.Equal, string sort = "")
         {
             _filters = new List<IFilter>();
             _filters.AddRange(filters.Select(filter => new FilterTag(filter.Key, filter.Value, operand)).ToList());
 
             _start = windowStart;
             _end = windowEnd;
+            _sort = sort;
         }
 
         /// <summary>
@@ -452,13 +463,15 @@ namespace MpcNET.Commands.Database
         /// <param name="filters">Filter</param>
         /// <param name="windowStart">Start of the portion of the results desired</param>
         /// <param name="windowEnd">End of the portion of the results desired</param>
-        public BaseFilterCommand(IFilter filters, int windowStart = -1, int windowEnd = -1)
+        /// <param name="sort">Optional sort parameter (tag name; prefix with "-" for descending).</param>
+        public BaseFilterCommand(IFilter filters, int windowStart = -1, int windowEnd = -1, string sort = "")
         {
             _filters = new List<IFilter>();
             _filters.Add(filters);
 
             _start = windowStart;
             _end = windowEnd;
+            _sort = sort;
         }
 
         /// <summary>
@@ -467,12 +480,14 @@ namespace MpcNET.Commands.Database
         /// <param name="filters">List of filters</param>
         /// <param name="windowStart">Start of the portion of the results desired</param>
         /// <param name="windowEnd">End of the portion of the results desired</param>
-        public BaseFilterCommand(List<IFilter> filters, int windowStart = -1, int windowEnd = -1)
+        /// <param name="sort">Optional sort parameter (tag name; prefix with "-" for descending).</param>
+        public BaseFilterCommand(List<IFilter> filters, int windowStart = -1, int windowEnd = -1, string sort = "")
         {
             _filters = filters;
 
             _start = windowStart;
             _end = windowEnd;
+            _sort = sort;
         }
 
         /// <summary>
@@ -491,6 +506,11 @@ namespace MpcNET.Commands.Database
                     _filters.Select(x => $"{x.GetFormattedCommand()}")
                 );
                 cmd = $@"{CommandName} ""({serializedFilters})""";
+            }
+
+            if (!string.IsNullOrEmpty(_sort))
+            {
+                cmd += $" sort {_sort}";
             }
 
             if (_start > -1)
