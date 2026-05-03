@@ -30,6 +30,15 @@ namespace MpcNET.Test
         }
 
         [TestMethod]
+        public void SearchCommand_Serialize_NoSort()
+        {
+            // Regression: ensure existing find/search commands still serialize without a sort token
+            // after _sort was added to BaseFilterCommand.
+            var cmd = new Commands.Database.SearchCommand(MpdTags.Artist, "test");
+            Assert.AreEqual(@"search ""((artist == \""test\""))""", cmd.Serialize());
+        }
+
+        [TestMethod]
         public void FindAddCommand_Serialize_FilterOnly()
         {
             var cmd = new Commands.Database.FindAddCommand(MpdTags.Genre, "rock");

@@ -4,10 +4,96 @@
     using System.Threading.Tasks;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using MpcNET.Commands;
+    using MpcNET.Commands.Playlist;
     using MpcNET.Commands.Queue;
+    using MpcNET.Tags;
 
     public partial class LibMpcTest
     {
+        [TestMethod]
+        public void PlaylistFindCommand_Serialize_Basic()
+        {
+            var cmd = new PlaylistFindCommand(MpdTags.Genre, "rock");
+            Assert.AreEqual(@"playlistfind ""((genre == \""rock\""))""", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void PlaylistFindCommand_Serialize_WithSort()
+        {
+            var cmd = new PlaylistFindCommand(MpdTags.Genre, "rock", sort: "Artist");
+            Assert.AreEqual(@"playlistfind ""((genre == \""rock\""))"" sort Artist", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void PlaylistFindCommand_Serialize_WithDescendingSort()
+        {
+            var cmd = new PlaylistFindCommand(MpdTags.Genre, "rock", sort: "-Artist");
+            Assert.AreEqual(@"playlistfind ""((genre == \""rock\""))"" sort -Artist", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void PlaylistFindCommand_Serialize_WithSortAndWindow()
+        {
+            var cmd = new PlaylistFindCommand(MpdTags.Genre, "rock", 0, 10, "Artist");
+            Assert.AreEqual(@"playlistfind ""((genre == \""rock\""))"" sort Artist window 0:10", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void PlaylistSearchCommand_Serialize_Basic()
+        {
+            var cmd = new PlaylistSearchCommand(MpdTags.Artist, "test");
+            Assert.AreEqual(@"playlistsearch ""((artist == \""test\""))""", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void PlaylistSearchCommand_Serialize_WithSort()
+        {
+            var cmd = new PlaylistSearchCommand(MpdTags.Artist, "test", sort: "Title");
+            Assert.AreEqual(@"playlistsearch ""((artist == \""test\""))"" sort Title", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void PlaylistMoveCommand_Serialize_SinglePosition()
+        {
+            var cmd = new Commands.Playlist.PlaylistMoveCommand("mypl", 5, 10);
+            Assert.AreEqual(@"playlistmove ""mypl"" 5 10", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void PlaylistMoveCommand_Serialize_Range()
+        {
+            var cmd = new Commands.Playlist.PlaylistMoveCommand("mypl", 5, 8, 10);
+            Assert.AreEqual(@"playlistmove ""mypl"" 5:8 10", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void SaveCommand_Serialize_NoMode()
+        {
+            var cmd = new SaveCommand("mypl");
+            Assert.AreEqual(@"save ""mypl""", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void SaveCommand_Serialize_CreateMode()
+        {
+            var cmd = new SaveCommand("mypl", SaveMode.Create);
+            Assert.AreEqual(@"save ""mypl"" create", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void SaveCommand_Serialize_AppendMode()
+        {
+            var cmd = new SaveCommand("mypl", SaveMode.Append);
+            Assert.AreEqual(@"save ""mypl"" append", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void SaveCommand_Serialize_ReplaceMode()
+        {
+            var cmd = new SaveCommand("mypl", SaveMode.Replace);
+            Assert.AreEqual(@"save ""mypl"" replace", cmd.Serialize());
+        }
+
         [DataTestMethod]
         [DataRow("Playlist One", 5)]
         [DataRow("Playlist Two", 3)]
