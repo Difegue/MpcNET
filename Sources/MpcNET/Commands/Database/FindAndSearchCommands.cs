@@ -369,15 +369,15 @@ namespace MpcNET.Commands.Database
         /// </summary>
         public override string Serialize()
         {
-            string cmd = "";
-
-            if (_filters != null)
+            if (_filters == null || _filters.Count == 0)
             {
-                var serializedFilters = string.Join(" AND ",
-                    _filters.Select(x => $"{x.GetFormattedCommand()}")
-                );
-                cmd = $@"{CommandName} ""{_playlistName}"" ""({serializedFilters})""";
+                throw new System.InvalidOperationException($"{CommandName} requires at least one filter.");
             }
+
+            var serializedFilters = string.Join(" AND ",
+                _filters.Select(x => $"{x.GetFormattedCommand()}")
+            );
+            string cmd = $@"{CommandName} ""{_playlistName}"" ""({serializedFilters})""";
 
             if (!string.IsNullOrEmpty(_sort))
             {
@@ -498,15 +498,15 @@ namespace MpcNET.Commands.Database
         /// </returns>
         public virtual string Serialize()
         {
-            string cmd = "";
-
-            if (_filters != null)
+            if (_filters == null || _filters.Count == 0)
             {
-                var serializedFilters = string.Join(" AND ",
-                    _filters.Select(x => $"{x.GetFormattedCommand()}")
-                );
-                cmd = $@"{CommandName} ""({serializedFilters})""";
+                throw new System.InvalidOperationException($"{CommandName} requires at least one filter.");
             }
+
+            var serializedFilters = string.Join(" AND ",
+                _filters.Select(x => $"{x.GetFormattedCommand()}")
+            );
+            string cmd = $@"{CommandName} ""({serializedFilters})""";
 
             if (!string.IsNullOrEmpty(_sort))
             {

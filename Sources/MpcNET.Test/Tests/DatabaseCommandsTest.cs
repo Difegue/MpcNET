@@ -187,5 +187,66 @@ namespace MpcNET.Test
             Assert.AreEqual(17, result.Songs);
             Assert.AreEqual(5872, result.Playtime);
         }
+
+        [TestMethod]
+        public void CountGroupCommand_Serialize_WithFilter()
+        {
+            var cmd = new Commands.Database.CountGroupCommand(
+                new FilterTag(MpdTags.Genre, "rock", FilterOperator.Equal),
+                MpdTags.Artist);
+            Assert.AreEqual(@"count ""((genre == \""rock\""))"" group artist", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void CountGroupCommand_Serialize_NoFilter()
+        {
+            var cmd = new Commands.Database.CountGroupCommand((IFilter)null, MpdTags.Album);
+            Assert.AreEqual(@"count group album", cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void CountGroupCommand_Deserialize_ReturnsOneRowPerGroup()
+        {
+            var cmd = new Commands.Database.CountGroupCommand((IFilter)null, MpdTags.Artist);
+            var response = new SerializedResponse
+            {
+                ResponseValues = new List<KeyValuePair<string, string>>
+                {
+                    new KeyValuePair<string, string>("Artist", "Foo"),
+                    new KeyValuePair<string, string>("songs", "3"),
+                    new KeyValuePair<string, string>("playtime", "600"),
+                    new KeyValuePair<string, string>("Artist", "Bar"),
+                    new KeyValuePair<string, string>("songs", "5"),
+                    new KeyValuePair<string, string>("playtime", "1200"),
+                },
+            };
+            var rows = cmd.Deserialize(response).ToList();
+            Assert.AreEqual(2, rows.Count);
+            Assert.AreEqual("Foo", rows[0].GroupValue);
+            Assert.AreEqual(3, rows[0].Songs);
+            Assert.AreEqual(600, rows[0].Playtime);
+            Assert.AreEqual("Bar", rows[1].GroupValue);
+            Assert.AreEqual(5, rows[1].Songs);
+            Assert.AreEqual(1200, rows[1].Playtime);
+        }
+
+        [TestMethod]
+        public void FindCommand_Serialize_EmptyFilterList_Throws()
+        {
+            var cmd = new Commands.Database.FindCommand(new List<IFilter>());
+            Assert.ThrowsException<System.InvalidOperationException>(() => cmd.Serialize());
+        }
+
+        [TestMethod]
+        public void ListAllCommand_Serialize_NoUri()
+        {
+            Assert.AreEqual("listall", new Commands.Database.ListAllCommand().Serialize());
+        }
+
+        [TestMethod]
+        public void ListAllCommand_Serialize_WithUri()
+        {
+            Assert.AreEqual(@"listall ""Music/Rock""", new Commands.Database.ListAllCommand("Music/Rock").Serialize());
+        }
     }
 }

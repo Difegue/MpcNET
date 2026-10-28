@@ -28,6 +28,11 @@ namespace MpcNET.Types
         [Description("=~")]
         Mask,
         /// <summary>
+        /// Negated mask (!~). Since MPD 0.24.
+        /// </summary>
+        [Description("!~")]
+        MaskNot,
+        /// <summary>
         /// Starts With (starts_with)
         /// </summary>
         [Description("starts_with")]
