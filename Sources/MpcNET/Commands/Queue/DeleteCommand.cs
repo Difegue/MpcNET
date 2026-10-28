@@ -1,4 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="DeleteCommand.cs" company="MpcNET">
 // Copyright (c) MpcNET. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
@@ -10,12 +10,13 @@ namespace MpcNET.Commands.Queue
     using System.Collections.Generic;
 
     /// <summary>
-    /// Deletes a song from the playlist.
-    /// https://www.musicpd.org/doc/protocol/queue.html.
+    /// Deletes a song or a range of songs from the queue.
+    /// https://mpd.readthedocs.io/en/stable/protocol.html#the-queue
     /// </summary>
     public class DeleteCommand : IMpcCommand<string>
     {
-        private readonly int position;
+        private readonly int startpos;
+        private readonly int endpos;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DeleteCommand"/> class.
@@ -23,7 +24,19 @@ namespace MpcNET.Commands.Queue
         /// <param name="position">The position.</param>
         public DeleteCommand(int position)
         {
-            this.position = position;
+            this.startpos = position;
+            this.endpos = int.MinValue;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DeleteCommand"/> class for a range.
+        /// </summary>
+        /// <param name="startpos">Inclusive start position.</param>
+        /// <param name="endpos">Exclusive end position.</param>
+        public DeleteCommand(int startpos, int endpos)
+        {
+            this.startpos = startpos;
+            this.endpos = endpos;
         }
 
         /// <summary>
@@ -32,7 +45,7 @@ namespace MpcNET.Commands.Queue
         /// <returns>
         /// The serialize command.
         /// </returns>
-        public string Serialize() => string.Join(" ", "delete", position);
+        public string Serialize() => string.Join(" ", "delete", endpos != int.MinValue ? $"{startpos}:{endpos}" : $"{startpos}");
 
         /// <summary>
         /// Deserializes the specified response text pairs.
