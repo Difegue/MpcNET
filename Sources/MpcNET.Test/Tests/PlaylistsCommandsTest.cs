@@ -11,6 +11,48 @@
     public partial class LibMpcTest
     {
         [TestMethod]
+        public void LoadCommand_Serialize_NameOnly()
+        {
+            Assert.AreEqual(@"load ""mylist""", new LoadCommand("mylist").Serialize());
+        }
+
+        [TestMethod]
+        public void LoadCommand_Serialize_NameAndRange()
+        {
+            Assert.AreEqual(@"load ""mylist"" 0:5", new LoadCommand("mylist", 0, 5).Serialize());
+        }
+
+        [TestMethod]
+        public void LoadCommand_Serialize_NameRangeAndPosition()
+        {
+            Assert.AreEqual(@"load ""mylist"" 0:5 +0", new LoadCommand("mylist", 0, 5, "+0").Serialize());
+        }
+
+        [TestMethod]
+        public void LoadCommand_Serialize_OpenEndedRange()
+        {
+            Assert.AreEqual(@"load ""mylist"" 0: +0", new LoadCommand("mylist", 0, int.MaxValue, "+0").Serialize());
+        }
+
+        [TestMethod]
+        public void ListPlaylistCommand_Serialize_NameOnly()
+        {
+            Assert.AreEqual(@"listplaylist ""mylist""", new ListPlaylistCommand("mylist").Serialize());
+        }
+
+        [TestMethod]
+        public void ListPlaylistCommand_Serialize_NameAndRange()
+        {
+            Assert.AreEqual(@"listplaylist ""mylist"" 0:10", new ListPlaylistCommand("mylist", 0, 10).Serialize());
+        }
+
+        [TestMethod]
+        public void ListPlaylistInfoCommand_Serialize_NameAndRange()
+        {
+            Assert.AreEqual(@"listplaylistinfo ""mylist"" 0:10", new ListPlaylistInfoCommand("mylist", 0, 10).Serialize());
+        }
+
+        [TestMethod]
         public void PlaylistFindCommand_Serialize_Basic()
         {
             var cmd = new PlaylistFindCommand(MpdTags.Genre, "rock");
