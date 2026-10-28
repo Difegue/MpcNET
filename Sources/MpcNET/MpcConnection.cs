@@ -191,27 +191,38 @@ namespace MpcNET
                 .ExecuteAndCaptureAsync(async (t) =>
                 {
                     var client = new TcpClient(AddressFamily.InterNetworkV6);
-                    client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true); // Allow socket reuse
-                    client.LingerState = new LingerOption(true, 0); // Make them a bit more ephemeral
-                    client.Client.DualMode = true; // Enable both IPv4 and IPv6
-                    using (t.Register(() => client.Close()))
+                    try
                     {
-                        try
+                        client.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true); // Allow socket reuse
+                        client.LingerState = new LingerOption(true, 0); // Make them a bit more ephemeral
+                        client.Client.DualMode = true; // Enable both IPv4 and IPv6
+                        using (t.Register(() => client.Close()))
                         {
-                            await client.ConnectAsync(server.Address, server.Port).ConfigureAwait(false);
+                            try
+                            {
+                                await client.ConnectAsync(server.Address, server.Port).ConfigureAwait(false);
+                            }
+                            catch (ObjectDisposedException) when (t.IsCancellationRequested)
+                            {
+                                t.ThrowIfCancellationRequested();
+                            }
                         }
-                        catch (ObjectDisposedException) when (t.IsCancellationRequested)
-                        {
-                            t.ThrowIfCancellationRequested();
-                        }
-                    }
 
-                    if (client.Connected)
+                        if (client.Connected)
+                        {
+                            return client;
+                        }
+
+                        // Connection failed without exception -- dispose to avoid socket leak
+                        client.Dispose();
+                        return null;
+                    }
+                    catch
                     {
-                        return client;
+                        // Dispose the TcpClient before letting the exception propagate to Polly for retry
+                        client.Dispose();
+                        throw;
                     }
-
-                    return null;
                 }, token, true).ConfigureAwait(false);
 
             if (connectResult.Outcome == OutcomeType.Successful && connectResult.Result != null)

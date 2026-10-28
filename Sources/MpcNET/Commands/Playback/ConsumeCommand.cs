@@ -28,6 +28,21 @@ namespace MpcNET.Commands.Playback
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ConsumeCommand"/> class.
+        /// <c>OneShot</c> requires MPD 0.24+.
+        /// </summary>
+        /// <param name="state">The consume state.</param>
+        public ConsumeCommand(OneShotState state)
+        {
+            switch (state)
+            {
+                case OneShotState.Off: this.single = "0"; break;
+                case OneShotState.On: this.single = "1"; break;
+                case OneShotState.OneShot: this.single = "oneshot"; break;
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ConsumeCommand"/> class.
         /// </summary>
         public ConsumeCommand()
         {

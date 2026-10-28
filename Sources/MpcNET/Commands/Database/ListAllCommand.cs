@@ -1,4 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="ListAllCommand.cs" company="MpcNET">
 // Copyright (c) MpcNET. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
@@ -16,13 +16,31 @@ namespace MpcNET.Commands.Database
     /// </summary>
     public class ListAllCommand : IMpcCommand<IEnumerable<MpdDirectory>>
     {
+        private readonly string uri;
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ListAllCommand"/> class.
+        /// </summary>
+        public ListAllCommand()
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ListAllCommand"/> class restricted to a URI.
+        /// </summary>
+        /// <param name="uri">Directory or file URI to list.</param>
+        public ListAllCommand(string uri)
+        {
+            this.uri = uri;
+        }
+
         /// <summary>
         /// Serializes the command.
         /// </summary>
         /// <returns>
         /// The serialize command.
         /// </returns>
-        public string Serialize() => "listall";
+        public string Serialize() => string.IsNullOrEmpty(uri) ? "listall" : $"listall \"{uri}\"";
 
         /// <summary>
         /// Deserializes the specified response text pairs.
@@ -55,6 +73,5 @@ namespace MpcNET.Commands.Database
         }
     }
 
-    // TODO: findadd
     // TODO: rescan
 }

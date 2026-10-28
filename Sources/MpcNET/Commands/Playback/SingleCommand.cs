@@ -28,6 +28,21 @@ namespace MpcNET.Commands.Playback
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SingleCommand"/> class.
+        /// <c>OneShot</c> requires MPD 0.21+.
+        /// </summary>
+        /// <param name="state">The single state.</param>
+        public SingleCommand(OneShotState state)
+        {
+            switch (state)
+            {
+                case OneShotState.Off: this.playArgument = "0"; break;
+                case OneShotState.On: this.playArgument = "1"; break;
+                case OneShotState.OneShot: this.playArgument = "oneshot"; break;
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SingleCommand"/> class.
         /// </summary>
         public SingleCommand()
         {

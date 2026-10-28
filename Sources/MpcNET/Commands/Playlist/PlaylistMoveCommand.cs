@@ -15,6 +15,7 @@ namespace MpcNET.Commands.Playlist
     {
         private readonly string playlist;
         private readonly int from;
+        private readonly int endpos;
         private readonly int to;
 
         /// <summary>
@@ -27,6 +28,23 @@ namespace MpcNET.Commands.Playlist
         {
             this.playlist = playlistName;
             this.from = from;
+            this.endpos = int.MinValue;
+            this.to = to;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PlaylistMoveCommand"/> class with a range.
+        /// Moves the songs at positions [start..end) in the playlist to position TO.
+        /// </summary>
+        /// <param name="playlistName">The playlist name.</param>
+        /// <param name="start">Start position of the range to move</param>
+        /// <param name="end">End position (exclusive) of the range to move</param>
+        /// <param name="to">New position for the moved songs</param>
+        public PlaylistMoveCommand(string playlistName, int start, int end, int to)
+        {
+            this.playlist = playlistName;
+            this.from = start;
+            this.endpos = end;
             this.to = to;
         }
 
@@ -36,7 +54,8 @@ namespace MpcNET.Commands.Playlist
         /// <returns>
         /// The serialize command.
         /// </returns>
-        public string Serialize() => string.Join(" ", "playlistmove", $"\"{playlist}\"", from, to);
+        public string Serialize() => string.Join(" ", "playlistmove", $"\"{playlist}\"",
+            endpos != int.MinValue ? $"{from}:{endpos}" : $"{from}", to);
 
         /// <summary>
         /// Deserializes the specified response text pairs.

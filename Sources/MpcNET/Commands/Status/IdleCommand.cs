@@ -1,4 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="IdleCommand.cs" company="MpcNET">
 // Copyright (c) MpcNET. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
@@ -7,14 +7,15 @@
 namespace MpcNET.Commands.Status
 {
     using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Idles mpd until something happens.
-    /// https://www.musicpd.org/doc/protocol/command_reference.html#status_commands.
+    /// https://mpd.readthedocs.io/en/stable/protocol.html#querying-mpd-s-status
     /// </summary>
     public class IdleCommand : IMpcCommand<string>
     {
-        private readonly string subSystem;
+        private readonly string subSystems;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="IdleCommand"/> class.
@@ -22,7 +23,18 @@ namespace MpcNET.Commands.Status
         /// <param name="subSystem">The sub system.</param>
         public IdleCommand(string subSystem)
         {
-            this.subSystem = subSystem;
+            this.subSystems = subSystem;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IdleCommand"/> class with multiple subsystems.
+        /// </summary>
+        /// <param name="subSystems">The sub systems to wait on.</param>
+        public IdleCommand(params string[] subSystems)
+        {
+            this.subSystems = subSystems == null
+                ? null
+                : string.Join(" ", subSystems.Where(s => !string.IsNullOrEmpty(s)));
         }
 
         /// <summary>
@@ -33,12 +45,12 @@ namespace MpcNET.Commands.Status
         /// </returns>
         public string Serialize()
         {
-            if (string.IsNullOrEmpty(this.subSystem))
+            if (string.IsNullOrEmpty(this.subSystems))
             {
                 return "idle";
             }
 
-            return "idle " + this.subSystem;
+            return "idle " + this.subSystems;
         }
 
         /// <summary>

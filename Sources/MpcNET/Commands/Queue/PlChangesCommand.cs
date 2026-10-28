@@ -1,4 +1,4 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 // <copyright file="PlChangesCommand.cs" company="MpcNET">
 // Copyright (c) MpcNET. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
@@ -11,12 +11,14 @@ namespace MpcNET.Commands.Queue
     using MpcNET.Types;
 
     /// <summary>
-    /// Displays changed songs currently in the playlist since VERSION. 
-    /// https://www.musicpd.org/doc/html/protocol.html#the-queue.
+    /// Displays changed songs currently in the queue since VERSION, optionally limited to a START:END range.
+    /// https://mpd.readthedocs.io/en/stable/protocol.html#the-queue
     /// </summary>
     public class PlChangesCommand : IMpcCommand<IEnumerable<IMpdFile>>
     {
-        private readonly string version;
+        private readonly int version;
+        private readonly int startpos;
+        private readonly int endpos;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PlChangesCommand"/> class.
@@ -24,7 +26,22 @@ namespace MpcNET.Commands.Queue
         /// <param name="version">Version to compare to the current playlist.</param>
         public PlChangesCommand(int version = -1)
         {
-            this.version = version.ToString();
+            this.version = version;
+            this.startpos = -1;
+            this.endpos = int.MinValue;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PlChangesCommand"/> class with a range.
+        /// </summary>
+        /// <param name="version">Version to compare to the current playlist.</param>
+        /// <param name="startpos">Inclusive start position.</param>
+        /// <param name="endpos">Exclusive end position.</param>
+        public PlChangesCommand(int version, int startpos, int endpos)
+        {
+            this.version = version;
+            this.startpos = startpos;
+            this.endpos = endpos;
         }
 
         /// <summary>
@@ -33,7 +50,14 @@ namespace MpcNET.Commands.Queue
         /// <returns>
         /// The serialize command.
         /// </returns>
-        public string Serialize() => $"plchanges {version}";
+        public string Serialize()
+        {
+            if (startpos < 0)
+            {
+                return $"plchanges {version}";
+            }
+            return $"plchanges {version} {startpos}:{endpos}";
+        }
 
         /// <summary>
         /// Deserializes the specified response text pairs.
