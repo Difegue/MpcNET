@@ -79,6 +79,14 @@ namespace MpcNET.Types
         string Date { get; }
 
         /// <summary>
+        /// Gets the date when the song was added to the database.
+        /// </summary>
+        /// <value>
+        /// The added date (ISO 8601 string), or null if not provided.
+        /// </value>
+        string Added { get; }
+
+        /// <summary>
         /// Gets the composer.
         /// </summary>
         /// <value>
@@ -178,6 +186,11 @@ namespace MpcNET.Types
         /// Gets a value indicating whether the MpdFile has the <see cref="Date"/> property set.
         /// </summary>
         bool HasDate { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether the MpdFile has the <see cref="Added"/> property set.
+        /// </summary>
+        bool HasAdded { get; }
 
         /// <summary>
         /// Gets a value indicating whether the MpdFile has the <see cref="Composer"/> property set.

@@ -28,6 +28,11 @@ namespace MpcNET.Types
         [Description("=~")]
         Mask,
         /// <summary>
+        /// Starts With (starts_with)
+        /// </summary>
+        [Description("starts_with")]
+        StartsWith,
+        /// <summary>
         /// None ("")
         /// </summary>
         [Description("")]

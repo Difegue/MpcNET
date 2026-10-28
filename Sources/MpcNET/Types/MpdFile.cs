@@ -24,6 +24,7 @@ namespace MpcNET.Types
         internal const string TagName = "Name";
         internal const string TagGenre = "Genre";
         internal const string TagDate = "Date";
+        internal const string TagAdded = "Added";
         internal const string TagComposer = "Composer";
         internal const string TagPerformer = "Performer";
         internal const string TagComment = "Comment";
@@ -40,6 +41,7 @@ namespace MpcNET.Types
         internal const string NoName = null;
         internal const string NoGenre = null;
         internal const string NoDate = null;
+        internal const string NoAdded = null;
         internal const string NoComposer = null;
         internal const string NoPerformer = null;
         internal const string NoComment = null;
@@ -64,6 +66,7 @@ namespace MpcNET.Types
             int disc = NoDisc,
             int pos = NoPos,
             int id = NoId,
+            string added = NoAdded,
             IReadOnlyDictionary<string, string> unknownMetadata = null)
         {
             this.Path = path;
@@ -76,6 +79,7 @@ namespace MpcNET.Types
             this.Name = name;
             this.Genre = genre;
             this.Date = date;
+            this.Added = added;
             this.Composer = composer;
             this.Performer = performer;
             this.Comment = comment;
@@ -104,6 +108,8 @@ namespace MpcNET.Types
         public string Genre { get; }
 
         public string Date { get; }
+
+        public string Added { get; }
 
         public string Composer { get; }
 
@@ -163,6 +169,11 @@ namespace MpcNET.Types
         /// Gets a value indicating whether the MpdFile has the <see cref="Date"/> property set.
         /// </summary>
         public bool HasDate => this.Date != NoDate;
+
+        /// <summary>
+        /// Gets a value indicating whether the MpdFile has the <see cref="Added"/> property set.
+        /// </summary>
+        public bool HasAdded => this.Added != NoAdded;
 
         /// <summary>
         /// Gets a value indicating whether the MpdFile has the <see cref="Composer"/> property set.
@@ -233,6 +244,7 @@ namespace MpcNET.Types
             string name = NoName;
             string genre = NoGenre;
             string date = NoDate;
+            string added = NoAdded;
             string composer = NoComposer;
             string performer = NoPerformer;
             string comment = NoComment;
@@ -264,7 +276,8 @@ namespace MpcNET.Types
                                 comment,
                                 disc,
                                 pos,
-                                id), index - 1);
+                                id,
+                                added), index - 1);
                         case TagTime:
                             if (int.TryParse(line.Value, out int tryTime))
                             {
@@ -298,6 +311,9 @@ namespace MpcNET.Types
                             break;
                         case TagDate:
                             date = line.Value;
+                            break;
+                        case TagAdded:
+                            added = line.Value;
                             break;
                         case TagComposer:
                             composer = line.Value;
@@ -360,7 +376,8 @@ namespace MpcNET.Types
                 comment,
                 disc,
                 pos,
-                id), response.Count - 1);
+                id,
+                added), response.Count - 1);
         }
 
         internal static IEnumerable<IMpdFile> CreateList(IReadOnlyList<KeyValuePair<string, string>> response)

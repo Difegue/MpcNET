@@ -16,8 +16,8 @@ namespace MpcNET.Types.Filters
         /// <param name="Negation">If the expression is negated</param>
         public FilterTag(ITag Tag, string Value, FilterOperator Operator, bool Negation = false) : base(Tag.Value, Operator, Value, Negation)
         {
-            if (Operator != FilterOperator.Equal && Operator != FilterOperator.Different && Operator != FilterOperator.Contains)
-                throw new System.ArgumentException("Operator is not compatible: for \"TAG\" use FilterOperator.Equal, FilterOperator.Different or FilterOperator.Contains.");
+            if (Operator != FilterOperator.Equal && Operator != FilterOperator.Different && Operator != FilterOperator.Contains && Operator != FilterOperator.StartsWith)
+                throw new System.ArgumentException("Operator is not compatible: for \"TAG\" use FilterOperator.Equal, FilterOperator.Different, FilterOperator.Contains or FilterOperator.StartsWith.");
 
             this.Value = Value;
             this.Operator = Operator;
